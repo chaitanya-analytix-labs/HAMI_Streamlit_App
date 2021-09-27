@@ -17,6 +17,7 @@ footer:before{
 }
 <style>
 """
+
 #PYNGROK
 from pyngrok import ngrok
 
@@ -95,8 +96,9 @@ def show_ents(doc):
     print('No named entities found')
 
 
-
+#############################
 #TOPIC MODELLING
+#############################
 #@st.cache
 # Define tokenization function (sentence-level) 
 def sent_to_words(sentences):
@@ -255,7 +257,10 @@ keywords.to_excel("/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/
 full_results=pd.read_excel("/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/vsc_output/TG_pyTopics.xlsx")
 keywords=pd.read_excel("/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/vsc_output/TG_pykeywords.xlsx")
 
+#############################
 #SENTIMENT PREDICTION
+#############################
+
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from sklearn.preprocessing import MinMaxScaler
 analyzer = SentimentIntensityAnalyzer()
@@ -306,8 +311,10 @@ df1.to_excel("/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/Tg_se
 
 
 
-
+####################################################
 #APPLYING the NER FROM SPACY
+####################################################
+
 df1['NER']=df1['clean_text'].apply(lambda x: nlp(x))
 
 tokens=nlp(''.join(str(df1.clean_text.tolist())))
@@ -371,7 +378,9 @@ for ent in tokens.ents:
 gpe_counts = Counter(gpe_list).most_common(20)
 df_gpe = pd.DataFrame(gpe_counts, columns =['text', 'count'])
 
+######################
 #SUMMARIZATION
+######################
 
 # Sumy Summary Package
 from sumy.parsers.plaintext import PlaintextParser
