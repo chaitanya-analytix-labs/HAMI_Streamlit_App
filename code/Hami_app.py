@@ -17,6 +17,7 @@ footer:before{
 }
 <style>
 """
+
 #PYNGROK
 from pyngrok import ngrok
 
@@ -139,7 +140,6 @@ def lemmatization(
 
 df=pd.read_excel('/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/input/sample_TG.xlsx')    
 #st.write(df)
-
 df1=df.rename(columns={'messages.date':'date','messages.text':'text','messages.from':'from'})
 df1= df1[['date','text','from']]
 df1['text'] = df1['text'].astype(str)
@@ -432,6 +432,19 @@ def view_all_users():
     c.execute('SELECT * FROM usertable')
     data=c.fetchall()
     return data
+
+#select columns
+def select_cols(self):
+    if self.df is not None:
+        try:
+            df_columns=list(self.df.columns)
+            label='Select Columns'
+            self.usecols=st.multiselect(label=label, default=df_columns,options=df_columns)
+            self.df=self.df[self.usecols]
+        except:
+            st.write('Column Select Error')
+            
+
 
 def main():
     #Top Headers
