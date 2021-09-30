@@ -17,12 +17,12 @@ footer:before{
 }
 <style>
 """
-
 #PYNGROK
 from pyngrok import ngrok
 
 from typing import Optional
 import pandas as pd
+from pandas_profiling import ProfileReport
 import numpy as np
 import nltk
 import re
@@ -54,6 +54,7 @@ from gensim.utils import simple_preprocess
 #import streamlit
 import streamlit as st
 import streamlit.components.v1 as components
+from streamlit_pandas_profiling import st_profile_report
 import io
 import base64
 
@@ -138,6 +139,7 @@ def lemmatization(
 
 df=pd.read_excel('/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/input/sample_TG.xlsx')    
 #st.write(df)
+
 df1=df.rename(columns={'messages.date':'date','messages.text':'text','messages.from':'from'})
 df1= df1[['date','text','from']]
 df1['text'] = df1['text'].astype(str)
@@ -464,11 +466,27 @@ def main():
                 st.header("Analysis")
 
                 #Uploader
+                
                 dff=st.file_uploader("Choose a file to Upload",
                     type=["xlsx","csv"])
                 if dff is not None:
+                    def load_csv():
+                        csv=pd.read_csv(dff)
+                        return csv
+                    
+                    #File details
+                    file_details = {"Filename":dff.name,
+                    "FileType":dff.type,"FileSize":dff.size}
+                    #read excel
                     data = pd.read_excel(dff)
+                    #read csv
+                    #data= load_csv()
+                    pr=ProfileReport(data,explorative=True)
                     st.dataframe(data)
+                    st.header("**Pandas profiling report**")
+                    st_profile_report(pr)
+                else:
+                    st.warning("you need to upload a csv or excel file to start the analysis")
 
 
 
