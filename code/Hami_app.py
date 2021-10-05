@@ -81,7 +81,7 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 #pyLDAvis.enable_notebook()
 
 #@st.cache
-    #Text Processing
+#Text Preprocessing
 def text_preprocessing(text):
     # Remove '@name'
     text = re.sub(r'(@.*?)[\s]', ' ', text)
@@ -89,6 +89,8 @@ def text_preprocessing(text):
     text = re.sub(r'&amp;', '&', text)
     # Remove trailing whitespace
     text = re.sub(r'\s+', ' ', text)
+    #Remove emails
+    text = re.sub(r'(\W|^)[\w.\-]{0,25}@(yahoo|hotmail|gmail)\.com(\W|$)', ' ', text)
     #Remove new line characters
     text = re.sub(r'\s+', ' ', text).strip()
     return text
