@@ -12,3 +12,4 @@ spacy==2.3.5
 nltk==3.6.2
 pyLDAvis==3.3.1
 scikit_learn==1.0
+openpyxl==3.0.9
