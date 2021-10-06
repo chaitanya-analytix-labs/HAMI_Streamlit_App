@@ -393,13 +393,13 @@ def main():
                             analyzer="word",
                             min_df=5,  
                             stop_words=stopwords,
-                            ngram_range=(1,2)
+                            ngram_range=(2,3)
                             )
 
                             topic_corpus_vectorized = topic_vectorizer.fit_transform(topic_corpus_lemmatized)
 
                             search_params = {
-                                "n_components": [i for i in range(4,6)],
+                                "n_components": [i for i in range(3,6)],
                             }
 
                             # Initiate the Model
@@ -485,7 +485,10 @@ def main():
                             from streamlit import components
                             components.v1.html(html_string, width=1300, height=900, scrolling=False)
                             
-                            if st.checkbox("Dominant Topic Output"):
+                            col1,col2=st.columns(2)
+                            
+                            with col1:                                                
+                                st.write("**Dominant Topic Output**")
                                 fr=pd.read_csv('/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/vsc_output/csv files/TG_pyTopics.csv')
                                 fr=fr[["date","from","Lem_Text","DOMINANT_TOPIC"]]
                                 st.dataframe(fr)
@@ -496,7 +499,9 @@ def main():
                                 b64 = base64.b64encode(towrite.read()).decode()  # some strings
                                 linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Dominant_Topic.xlsx">Download Dominant_Topic file</a>'
                                 st.markdown(linko, unsafe_allow_html=True)
-                            if st.checkbox("Keyword List"):
+                                
+                            with col2:
+                                st.write("**Keyword List**")
                                 kw=pd.read_csv('/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/vsc_output/csv files/TG_pykeywords.csv')
                                 st.dataframe(kw)
                                 #Export kw to excel
@@ -527,7 +532,7 @@ def main():
                             ####################################################
                             #ENTITY RECOGNITION : APPLYING the NER FROM SPACY
                             ####################################################
-                            st.write("Select the Entity to see results")
+                            st.write("**Select the Entity from dropdown to see results**")
 
                             data['NER']=data['clean_text'].apply(lambda x: nlp(x))
 
