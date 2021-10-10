@@ -22,6 +22,13 @@ footer:before{
 from pickle import STOP
 from pyngrok import ngrok
 
+
+#lottie-Animation
+from streamlit_lottie import st_lottie
+import json
+from pandas.io.json import json_normalize
+import requests
+
 from typing import Optional
 import pandas as pd
 from pandas_profiling import ProfileReport
@@ -71,6 +78,26 @@ import matplotlib.pyplot as plt
 import wordcloud
 from wordcloud.wordcloud import STOPWORDS
 
+#################################
+#Lottie Animation
+#################################
+# Load the animation from local folder
+def load_lottiefile(filepath: str):
+    with open(filepath, "r") as f:
+        return json.load(f)
+
+#Load animation directly from website
+def load_lottieurl(url: str):
+    r = requests.get(url)
+    if r.status_code!=200:
+        return None
+    return r.json
+
+lottie_home=load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
+
+lottie_home2=load_lottiefile("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/input/Hami_home.json")
+
+
 
 #%matplotlib inline
 
@@ -114,7 +141,7 @@ def sent_to_words(sentence):
 #Prepare Stopwords
 
 stopwords=stopwords.words('english')
-stopwords.extend(['list', 'nan', 'link', 'type', 'thing', 'Haha','OK',"'lol'",'nil',"nil'","https","www","think","like","text","lol","no'","like'"])
+stopwords.extend(['list', 'nan', 'link', 'type', 'thing', 'Haha','OK',"'lol'",'nil',"nil'","https","www","think","like","text","lol","no'","like'","text","com","2021","covid","19","vaccine"])
 
 #############################
 #TOPIC MODELLING
@@ -269,6 +296,15 @@ def main():
 
     if choice == "Home":
         st.subheader("Home")
+        st_lottie(
+            lottie_home2,
+            speed=1,
+            reverse=False,
+            loop=True,
+            quality="medium",
+            key=None
+        )
+
     elif choice == "Login":
         st.subheader("Login Section")
 
@@ -289,7 +325,7 @@ def main():
                 #Uploader
                 
                 dff=st.file_uploader("Choose a file to Upload",
-                    type=["xlsx","csv"])
+                    type=["xlsx","csv","json"])
 
                 global data #To make it available outside the if statement
                 if dff is not None:
@@ -297,6 +333,11 @@ def main():
                         data=pd.read_csv(dff)
                     except Exception as e:
                         data=pd.read_excel(dff)
+                    #except Exception as e:
+                    #    with open(dff, 'w') as f:
+                    #        json.dump(dff, f)
+                    #    #yy=json_normalize(dff)
+                    #    data=pd.read_json(dff)
                     #File details
                     file_details = {"Filename":dff.name,
                     "FileType":dff.type,"FileSize":dff.size}
