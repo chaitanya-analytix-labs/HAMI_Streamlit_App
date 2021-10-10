@@ -22,6 +22,8 @@ footer:before{
 from pickle import STOP
 from pyngrok import ngrok
 
+#streamlit-tags
+from streamlit_tags import st_tags #pip install streamlit_tags==1.0.6
 
 #lottie-Animation
 from streamlit_lottie import st_lottie
@@ -142,6 +144,8 @@ def sent_to_words(sentence):
 
 stopwords=stopwords.words('english')
 stopwords.extend(['list', 'nan', 'link', 'type', 'thing', 'Haha','OK',"'lol'",'nil',"nil'","https","www","think","like","text","lol","no'","like'","text","com","2021","covid","19","vaccine"])
+
+
 
 #############################
 #TOPIC MODELLING
@@ -414,144 +418,162 @@ def main():
                         
                         if options == "Topic Modelling":
 
+                            #Assignments
+                                col1,col2,col3,col4=st.columns(4)
+                                with col1:
+                                    minimum_df=st.slider('slide to set min_df',min_value=1,max_value=8,help="Minimum required occurences of a word")
+                                with col2:
+                                    collect_numbers = lambda x : [int(i) for i in re.split("[^0-9]", x) if i != ""]
+                                    number_of_topics=st.text_input('Enter number of topics')
+                                    ticks=(collect_numbers(number_of_topics))
+                                with col3:
+                                    n_grams=st.slider('select a range of n-grams',1,5,(1,2),help="Assign the number ngram for keywords/phrases i.e.Bi-gram, tri-gram,...n-gram")
+                                with col4:
+                                    keywords=st_tags('Enter custom Stopwords:','Press enter to add more',['hello'])
+                                    
+                                    stopwords.extend(keywords)
+        
 
-                            topic_corpus_lemmatized = lemmatization(
-                            topic_corpus_words,
-                            allowed_postags=[
-                                    "NOUN",
-                                    "PROPN",
-                                    "ADJ",
-                                    "VERB",
-                                    "ADV",
-                                    "NUM",
-                                    "ORG",
-                                    "DATE",
-                                ],
-                            )
-
-
-                            topic_vectorizer = CountVectorizer(
-                            analyzer="word",
-                            min_df=5,  
-                            stop_words=stopwords,
-                            ngram_range=(2,3)
-                            )
-
-                            topic_corpus_vectorized = topic_vectorizer.fit_transform(topic_corpus_lemmatized)
-
-                            search_params = {
-                                "n_components": [i for i in range(3,6)],
-                            }
-
-                            # Initiate the Model
-                            topic_lda = LatentDirichletAllocation(
-                                max_iter=100, #default 10
-                                learning_method="batch",
-                                batch_size=32,
-                                learning_decay=0.7,
-                                random_state=42,)
-
-                            # Init Grid Search Class
-                            topic_model = GridSearchCV(topic_lda, cv=5, param_grid=search_params, n_jobs=-1, verbose=1)
-
-                            # Do the Grid Search
-                            topic_model.fit(topic_corpus_vectorized)
-
-                            # LDA Model
-                            topic_best_lda_model = topic_model.best_estimator_
-
-                            #pyLDAvis
-                            topic_panel=pyLDAvis.sklearn.prepare(
-                                topic_best_lda_model, topic_corpus_vectorized, topic_vectorizer, mds="tsne", R=50, sort_topics=False)
-                            pyLDAvis.save_html(topic_panel, '/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/topic_panel.html')
-                            
-                            #Creating new df with keywords count
-
-                            topic_keywords = topic_panel.topic_info[["Term", "Freq", "Total", "Category"]]
-
-                            topic_keywords = topic_keywords.rename(
-                                columns={
-                                    "Term": "Keyword",
-                                    "Freq": "Count in Topic",
-                                    "Total": "Count Overall",
-                                    "Category": "Topic",
-                                }
-                            )
-
-                            topic_keywords["Topic"] = topic_keywords["Topic"].map(
-                                lambda x: str(x).replace("Default", "Overall Transcript")
-                            )
-
-
-                            #Creating new dataframe with dominant topics and probability scores
-
-                            topic_lda_output = topic_best_lda_model.transform(topic_corpus_vectorized)
-
-                            # column names
-                            Topicnames = ["Topic" + str(i+1) for i in range(topic_best_lda_model.n_components)]
-
-                            # index names
-                            Docnames = ["Doc" + str(i+1) for i in range(len(topic_corpus))]
-
-                            # Make the pandas dataframe
-                            Topics = pd.DataFrame(
-                                np.round(topic_lda_output, 2), columns=Topicnames, index=Docnames
-                            )
-
-                            # Get dominant topic for each document
-                            Dominant_topics = np.argmax(Topics.values, axis=1)
-                            Topics["DOMINANT_TOPIC"] = Dominant_topics+1
-
-                            topic_lemma_text = pd.DataFrame(topic_corpus_lemmatized, columns=["Lem_Text"])
-
-                            #Merging all 3 dataframes
-
-                            Topics.reset_index(inplace=True)
-
-                            topic_full_results = data.merge(topic_lemma_text, left_index=True, right_index=True).merge(
-                                Topics, left_index=True, right_index=True)
-                            topic_full_results.drop("index", axis=1, inplace=True)
-
-                            #exporting to excel
-                            topic_full_results.to_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Topics.xlsx", index=False)
-                            topic_keywords.to_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Keywords.xlsx", index=False)
-
-                            #importing for calling with st.dataframe()
-                            topic_full_results=pd.read_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Topics.xlsx")
-                            topic_keywords=pd.read_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Keywords.xlsx")
-
-
-                            #st.plotly_chart(topic_panel)
-                            html_string = pyLDAvis.prepared_data_to_html(topic_panel)
-                            from streamlit import components
-                            components.v1.html(html_string, width=1300, height=900, scrolling=False)
-                            
-                            col1,col2=st.columns(2)
-                            
-                            with col1:                                                
-                                st.write("**Dominant Topic Output**")
-                                fr=pd.read_csv('/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/vsc_output/csv files/TG_pyTopics.csv')
-                                fr=fr[["date","from","Lem_Text","DOMINANT_TOPIC"]]
-                                st.dataframe(fr)
-                                #Export fr to excel
-                                towrite = io.BytesIO()
-                                downloaded_file = fr.to_excel(towrite, encoding='utf-8', index=False, header=True)
-                                towrite.seek(0)  # reset pointer
-                                b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Dominant_Topic.xlsx">Download Dominant_Topic file</a>'
-                                st.markdown(linko, unsafe_allow_html=True)
                                 
-                            with col2:
-                                st.write("**Keyword List**")
-                                kw=pd.read_csv('/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/vsc_output/csv files/TG_pykeywords.csv')
-                                st.dataframe(kw)
-                                #Export kw to excel
-                                towrite = io.BytesIO()
-                                downloaded_file = kw.to_excel(towrite, encoding='utf-8', index=False, header=True)
-                                towrite.seek(0)  # reset pointer
-                                b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Keyword_list.xlsx">Download Keyword_list file</a>'
-                                st.markdown(linko, unsafe_allow_html=True)
+
+
+
+                                topic_corpus_lemmatized = lemmatization(topic_corpus_words,
+                                    allowed_postags=[
+                                        "NOUN",
+                                        "PROPN",
+                                        "ADJ",
+                                        "VERB",
+                                        "ADV",
+                                        "NUM",
+                                        "ORG",
+                                        "DATE",
+                                    ],
+                                )
+
+
+                                topic_vectorizer = CountVectorizer(
+                                analyzer="word",
+                                min_df=minimum_df,  
+                                stop_words=stopwords,
+                                ngram_range=n_grams
+                                )
+
+                                topic_corpus_vectorized = topic_vectorizer.fit_transform(topic_corpus_lemmatized)
+
+                                search_params = {
+                                    "n_components": ticks,
+                                }
+
+                                # Initiate the Model
+                                topic_lda = LatentDirichletAllocation(
+                                    max_iter=100, #default 10
+                                    learning_method="batch",
+                                    batch_size=32,
+                                    learning_decay=0.7,
+                                    random_state=42,)
+
+                                # Init Grid Search Class
+                                topic_model = GridSearchCV(topic_lda, cv=5, param_grid=search_params, n_jobs=-1, verbose=1)
+
+                                # Do the Grid Search
+                                topic_model.fit(topic_corpus_vectorized)
+
+                                # LDA Model
+                                topic_best_lda_model = topic_model.best_estimator_
+
+                                #pyLDAvis
+                                topic_panel=pyLDAvis.sklearn.prepare(
+                                    topic_best_lda_model, topic_corpus_vectorized, topic_vectorizer, mds="tsne", R=50, sort_topics=False)
+                                pyLDAvis.save_html(topic_panel, '/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/topic_panel.html')
+                                
+                                #Creating new df with keywords count
+
+                                topic_keywords = topic_panel.topic_info[["Term", "Freq", "Total", "Category"]]
+
+                                topic_keywords = topic_keywords.rename(
+                                    columns={
+                                        "Term": "Keyword",
+                                        "Freq": "Count in Topic",
+                                        "Total": "Count Overall",
+                                        "Category": "Topic",
+                                    }
+                                )
+
+                                topic_keywords["Topic"] = topic_keywords["Topic"].map(
+                                    lambda x: str(x).replace("Default", "Overall Transcript")
+                                )
+
+
+                                #Creating new dataframe with dominant topics and probability scores
+
+                                topic_lda_output = topic_best_lda_model.transform(topic_corpus_vectorized)
+
+                                # column names
+                                Topicnames = ["Topic" + str(i+1) for i in range(topic_best_lda_model.n_components)]
+
+                                # index names
+                                Docnames = ["Doc" + str(i+1) for i in range(len(topic_corpus))]
+
+                                # Make the pandas dataframe
+                                Topics = pd.DataFrame(
+                                    np.round(topic_lda_output, 2), columns=Topicnames, index=Docnames
+                                )
+
+                                # Get dominant topic for each document
+                                Dominant_topics = np.argmax(Topics.values, axis=1)
+                                Topics["DOMINANT_TOPIC"] = Dominant_topics+1
+
+                                topic_lemma_text = pd.DataFrame(topic_corpus_lemmatized, columns=["Lem_Text"])
+
+                                #Merging all 3 dataframes
+
+                                Topics.reset_index(inplace=True)
+
+                                topic_full_results = data.merge(topic_lemma_text, left_index=True, right_index=True).merge(
+                                    Topics, left_index=True, right_index=True)
+                                topic_full_results.drop("index", axis=1, inplace=True)
+
+                                #exporting to excel
+                                topic_full_results.to_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Topics.xlsx", index=False)
+                                topic_keywords.to_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Keywords.xlsx", index=False)
+
+                                #importing for calling with st.dataframe()
+                                topic_full_results=pd.read_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Topics.xlsx")
+                                topic_keywords=pd.read_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Keywords.xlsx")
+
+
+                                #st.plotly_chart(topic_panel)
+                                html_string = pyLDAvis.prepared_data_to_html(topic_panel)
+                                from streamlit import components
+                                components.v1.html(html_string, width=1300, height=900, scrolling=False)
+                                
+                                col1,col2=st.columns(2)
+                                
+                                with col1:                                                
+                                    st.write("**Dominant Topic Output**")
+                                    fr=pd.read_csv('/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/vsc_output/csv files/TG_pyTopics.csv')
+                                    fr=fr[["date","from","Lem_Text","DOMINANT_TOPIC"]]
+                                    st.dataframe(fr)
+                                    #Export fr to excel
+                                    towrite = io.BytesIO()
+                                    downloaded_file = fr.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                                    towrite.seek(0)  # reset pointer
+                                    b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                    linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Dominant_Topic.xlsx">Download Dominant_Topic file</a>'
+                                    st.markdown(linko, unsafe_allow_html=True)
+                                    
+                                with col2:
+                                    st.write("**Keyword List**")
+                                    kw=pd.read_csv('/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/vsc_output/csv files/TG_pykeywords.csv')
+                                    st.dataframe(kw)
+                                    #Export kw to excel
+                                    towrite = io.BytesIO()
+                                    downloaded_file = kw.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                                    towrite.seek(0)  # reset pointer
+                                    b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                    linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Keyword_list.xlsx">Download Keyword_list file</a>'
+                                    st.markdown(linko, unsafe_allow_html=True)
 
 
 
