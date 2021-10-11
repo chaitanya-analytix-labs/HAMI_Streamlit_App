@@ -55,6 +55,7 @@ from spacy import displacy
 from spacy.lemmatizer import Lemmatizer
 from spacy.lang.en.stop_words import STOP_WORDS
 nlp=spacy.load("en_core_web_sm")
+nlp.max_length = 1450000 # or even higher
 from collections import Counter
 
 #sklearn
@@ -98,7 +99,7 @@ def load_lottieurl(url: str):
 
 lottie_home=load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
-lottie_home2=load_lottiefile("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/input/Hami_home.json")
+lottie_home2=load_lottiefile("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/code/Hami_home.json")
 
 
 
@@ -144,7 +145,7 @@ def sent_to_words(sentence):
 #Prepare Stopwords
 
 stopwords=stopwords.words('english')
-stopwords.extend(['list', 'nan', 'link', 'type', 'thing', 'Haha','OK',"'lol'",'nil',"nil'","https","www","think","like","text","lol","no'","like'","text","com","2021","covid","19","vaccine"])
+stopwords.extend(['list', 'nan', 'link', 'type', 'thing', 'Haha','OK',"'lol'",'nil',"nil'","https","www","think","like","text","lol","no'","like'","text","com","2021","covid","19","vaccine","'"])
 
 
 
@@ -240,9 +241,12 @@ def sumy_summarizer(docx):
 	result = ' '.join(summary_list)
 	return result
 
-#
+#T5 Summarization model
+#model.load_model("t5","/content/outputs/simplet5-epoch-4-train-loss-0.6352", use_gpu=True)
 
+############################################
 #sql database management to store passwords
+#############################################
 import hashlib
 def make_hashes(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
@@ -351,7 +355,7 @@ def main():
                 global numeric_columns
                 global non_numeric_columns
                 global column_options
-                
+                global stopwords
                 try:
 
                     numeric_columns=list(data.select_dtypes(['float','int']).columns)
@@ -729,6 +733,7 @@ def main():
 
                             #Word cloud overall text
                             topic_corpus = topic_text.values.tolist()
+                            #topic_corpus = ' '.join(map(str, topic_corpus)) 
 
                             #topic_corpus_words = list(sent_to_words(topic_corpus))
                             
