@@ -778,7 +778,7 @@ def main():
                             data['neg_keywords']=data.apply(lambda row: [word for word in word_tokenize(row['clean_text']) if word.lower() in tokenized_words_neg], axis=1)
                             data['pos_keywords']=data.apply(lambda row: [word for word in word_tokenize(row['clean_text']) if word.lower() in tokenized_words_pos], axis=1)
 
-                            data.to_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Sentiments.xlsx")
+                            data.to_excel(proj_dir + "/Sentiments.xlsx")
 
                             col1,col2,col3=st.columns(3)
 
