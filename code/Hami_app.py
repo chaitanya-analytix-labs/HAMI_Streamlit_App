@@ -551,12 +551,12 @@ def main():
                             topic_full_results.drop("index", axis=1, inplace=True)
 
                             #exporting to excel
-                            topic_full_results.to_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Topics.xlsx", index=False)
-                            topic_keywords.to_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Keywords.xlsx", index=False)
+                            topic_full_results.to_excel(proj_dir + "/Topics.xlsx", index=False)
+                            topic_keywords.to_excel(proj_dir + "/Keywords.xlsx", index=False)
 
                             #importing for calling with st.dataframe()
-                            topic_full_results=pd.read_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Topics.xlsx")
-                            topic_keywords=pd.read_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Keywords.xlsx")
+                            topic_full_results=pd.read_excel(proj_dir + "/Topics.xlsx")
+                            topic_keywords=pd.read_excel(proj_dir + "/Keywords.xlsx")
 
 
                             #st.plotly_chart(topic_panel)
@@ -568,7 +568,7 @@ def main():
                             
                             with col1:                                                
                                 st.write("**Dominant Topic Output**")
-                                fr=pd.read_csv('/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/vsc_output/csv files/TG_pyTopics.csv')
+                                fr=pd.read_csv(proj_dir + '/TG_pyTopics.csv')
                                 fr=fr[["date","from","Lem_Text","DOMINANT_TOPIC"]]
                                 st.dataframe(fr)
                                 #Export fr to excel
@@ -581,7 +581,7 @@ def main():
                                 
                             with col2:
                                 st.write("**Keyword List**")
-                                kw=pd.read_csv('/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/output/vsc_output/csv files/TG_pykeywords.csv')
+                                kw=pd.read_csv(proj_dir + '/TG_pykeywords.csv')
                                 st.dataframe(kw)
                                 #Export kw to excel
                                 towrite = io.BytesIO()
@@ -764,7 +764,7 @@ def main():
 
                             data['vader_prediction']=data.apply(lambda x: 'positive' if x.vader_comp > 0 else ('negative' if x.vader_comp < 0 else 'neutral'),axis=1)
 
-                            valence=open("/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/input/vader_lexicon.txt","r")
+                            valence=open(proj_dir + "/vader_lexicon.txt","r")
 
                             #split the vader.txt file contents with respect to spaces
                             lex_dict={}
@@ -779,7 +779,7 @@ def main():
                             data['neg_keywords']=data.apply(lambda row: [word for word in word_tokenize(row['clean_text']) if word.lower() in tokenized_words_neg], axis=1)
                             data['pos_keywords']=data.apply(lambda row: [word for word in word_tokenize(row['clean_text']) if word.lower() in tokenized_words_pos], axis=1)
 
-                            data.to_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Sentiments.xlsx")
+                            data.to_excel(proj_dir + "/Sentiments.xlsx")
 
                             col1,col2,col3=st.columns(3)
 
