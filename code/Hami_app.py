@@ -501,7 +501,7 @@ def main():
                             #pyLDAvis
                             topic_panel=pyLDAvis.sklearn.prepare(
                                 topic_best_lda_model, topic_corpus_vectorized, topic_vectorizer, mds="tsne", R=50, sort_topics=False)
-                            pyLDAvis.save_html(topic_panel, '/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/topic_panel.html')
+                            pyLDAvis.save_html(topic_panel, proj_dir + '/topic_panel.html')
                             
                             #Creating new df with keywords count
 
@@ -779,7 +779,8 @@ def main():
                             data['neg_keywords']=data.apply(lambda row: [word for word in word_tokenize(row['clean_text']) if word.lower() in tokenized_words_neg], axis=1)
                             data['pos_keywords']=data.apply(lambda row: [word for word in word_tokenize(row['clean_text']) if word.lower() in tokenized_words_pos], axis=1)
 
-                            data.to_excel(proj_dir + "/Sentiments.xlsx")
+                            data.to_excel(
+                                "/Sentiments.xlsx")
 
                             col1,col2,col3=st.columns(3)
 
