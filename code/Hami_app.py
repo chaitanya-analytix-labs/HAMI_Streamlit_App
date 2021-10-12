@@ -568,8 +568,7 @@ def main():
                             
                             with col1:                                                
                                 st.write("**Dominant Topic Output**")
-                                fr=pd.read_csv(proj_dir + '/TG_pyTopics.csv')
-                                fr=fr[["date","from","Lem_Text","DOMINANT_TOPIC"]]
+                                fr=pd.read_excel(proj_dir + '/Topics.xlsx')
                                 st.dataframe(fr)
                                 #Export fr to excel
                                 towrite = io.BytesIO()
@@ -581,7 +580,7 @@ def main():
                                 
                             with col2:
                                 st.write("**Keyword List**")
-                                kw=pd.read_csv(proj_dir + '/TG_pykeywords.csv')
+                                kw=pd.read_excel(proj_dir + '/Keywords.xlsx')
                                 st.dataframe(kw)
                                 #Export kw to excel
                                 towrite = io.BytesIO()
@@ -779,8 +778,7 @@ def main():
                             data['neg_keywords']=data.apply(lambda row: [word for word in word_tokenize(row['clean_text']) if word.lower() in tokenized_words_neg], axis=1)
                             data['pos_keywords']=data.apply(lambda row: [word for word in word_tokenize(row['clean_text']) if word.lower() in tokenized_words_pos], axis=1)
 
-                            data.to_excel(
-                                "/Sentiments.xlsx")
+                            data.to_excel("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Sentiments.xlsx")
 
                             col1,col2,col3=st.columns(3)
 
