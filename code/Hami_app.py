@@ -355,7 +355,7 @@ def main():
                 global numeric_columns
                 global non_numeric_columns
                 global column_options
-                global stopwords
+
                 try:
 
                     numeric_columns=list(data.select_dtypes(['float','int']).columns)
@@ -621,7 +621,11 @@ def main():
                             ,"NORP : Nationalities or religious or political groups"
                             ,"ORG : Companies, agencies, institutions."
                             ,"GPE : Countries, cities, states"
-                            ,"PRODUCT : Objects, vehicles, foods"))
+                            ,"PRODUCT : Objects, vehicles, foods"
+                            ,"EVENT : Named hurricanes, battles, wars, sports events"
+                            ,"LAW : Named documents made into laws"
+                            ,"WORK_OF_ART: Titles of books, songs"
+                            ))
 
                             if select_plot == "Person : People including fictional":
                                 
@@ -661,7 +665,7 @@ def main():
                                 org_counts = Counter(org_list).most_common(20)
                                 df_org = pd.DataFrame(org_counts, columns =['text', 'count'])
 
-                                st.pyplot(df_org.plot.barh(x='text', y='count',color="#cdbb69",title="Companies Agencies institutions", figsize=(10,8)).invert_yaxis())
+                                st.pyplot(df_org.plot.barh(x='text', y='count',color="#cdbb69",title="Companies Agencies institutions", figsize=(5,4)).invert_yaxis())
 
                             elif select_plot == "PRODUCT : Objects, vehicles, foods":
 
@@ -675,8 +679,49 @@ def main():
                                 prod_counts = Counter(prod_list).most_common(20)
                                 df_prod = pd.DataFrame(prod_counts, columns =['text', 'count'])
 
-                                st.pyplot(df_prod.plot.barh(x='text', y='count',color="#eca349",title="Objects,vehicles,foods", figsize=(10,8)).invert_yaxis())
+                                st.pyplot(df_prod.plot.barh(x='text', y='count',color="#eca349",title="Objects,vehicles,foods", figsize=(5,4)).invert_yaxis())
 
+                            elif select_plot == "EVENT : Named hurricanes, battles, wars, sports events":
+
+                                #EVENT: Named hurricanes, battles, wars, sports events,
+                                event_list = []
+                                for ent in tokens.ents:
+                                    if ent.label_ == 'EVENT':
+                                        event_list.append(ent.text)
+
+                                event_counts = Counter(event_list).most_common(20)
+                                df_event = pd.DataFrame(event_counts, columns=['text','count'])
+
+                                st.pyplot(df_event.plot.barh(x='text',y='count',color="#e08a31", title="Named hurricanes, battles, wars, sports events",figsize=(5,4)).invert_yaxis())
+                            
+                            elif select_plot == "LAW : Named documents made into laws":
+
+                                #LAW: Named documents made into laws
+                                law_list= []
+                                for ent in tokens.ents:
+                                    if ent.label_ == 'LAW':
+                                        law_list.append(ent.text)
+                                
+                                law_counts = Counter(law_list).most_common(20)
+                                df_law = pd.DataFrame(law_counts,columns= ['text','count'])
+
+                                st.pyplot(df_law.plot.barh(x='text',y='count',color="#80852c", title="Named documents made into laws",figsize=(5,4)).invert_yaxis())
+
+                            elif select_plot == "WORK_OF_ART: Titles of books, songs":
+                                
+                                #WORK_OF_ART: Titles of books, songs
+                                workofart_list= []
+                                for ent in tokens.ents:
+                                    if ent.label_ == 'WORK_OF_ART':
+                                        workofart_list.append(ent.text)
+                                
+                                workofart_counts = Counter(workofart_list).most_common(20)
+                                df_workofart = pd.DataFrame(workofart_counts,columns= ['text','count'])
+
+                                st.pyplot(df_workofart.plot.barh(x='text',y='count',color="#e0c295", title="Named documents made into laws",figsize=(5,4)).invert_yaxis())
+
+
+                            
                             else:
 
                                 #Countres, cities and states
@@ -689,7 +734,11 @@ def main():
                                 gpe_counts = Counter(gpe_list).most_common(20)
                                 df_gpe = pd.DataFrame(gpe_counts, columns =['text', 'count'])
 
-                                st.pyplot(df_gpe.plot.barh(x='text', y='count',color="#e08a31" ,title="Countres, cities and states", figsize=(10,8)).invert_yaxis())                        
+                                st.pyplot(df_gpe.plot.barh(x='text', y='count',color="#e08a31" ,title="Countres, cities and states", figsize=(10,8)).invert_yaxis()) 
+
+                            
+                                 
+                                                       
                                                         
                             
                             #########################
