@@ -73,6 +73,7 @@ st.set_page_config(layout="wide")
 import streamlit.components.v1 as components
 from streamlit_pandas_profiling import st_profile_report
 import io
+import os
 import base64
 
 #Tools required for plotting and wordcloud
@@ -97,9 +98,11 @@ def load_lottieurl(url: str):
         return None
     return r.json
 
+proj_dir = os.path.dirname(os.path.abspath(__file__))
+
 lottie_home=load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
-lottie_home2=load_lottiefile("/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/code/Hami_home.json")
+lottie_home2=load_lottiefile(proj_dir + "/Hami_home.json")
 
 
 
@@ -291,7 +294,7 @@ def select_cols(self):
 
 def main():
     #Top Headers
-    st.sidebar.image('/Volumes/GoogleDrive/My Drive/HAMI/Partners/HAN EI-TG/codes/HAMI LOGO.png')
+    st.sidebar.image(proj_dir + '/HAMI LOGO.png')
     st.sidebar.title("ANALYTIX ONLINE")
     st.sidebar.subheader("AI Solutions, Fine-Tuned to You")
 
