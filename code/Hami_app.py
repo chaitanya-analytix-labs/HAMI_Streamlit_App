@@ -21,7 +21,11 @@ footer:before{
 #PYNGROK
 from os import name
 from pickle import STOP
+import zipfile
 from pyngrok import ngrok
+import pickle
+import joblib
+
 
 #streamlit-tags
 from streamlit_tags import st_tags #pip install streamlit_tags==1.0.6
@@ -31,6 +35,13 @@ from streamlit_lottie import st_lottie
 import json
 from pandas.io.json import json_normalize
 import requests
+
+#Read Docx files
+
+import docx2txt
+import collections
+import os
+#import xmltodict
 
 from typing import Optional
 import pandas as pd
@@ -55,13 +66,15 @@ from spacy import displacy
 from spacy.lemmatizer import Lemmatizer
 from spacy.lang.en.stop_words import STOP_WORDS
 nlp=spacy.load("en_core_web_sm")
-nlp.max_length = 1450000 # or even higher
+nlp.max_length = 14500000 # or even higher
 from collections import Counter
 
 #sklearn
 from sklearn.decomposition import LatentDirichletAllocation
+from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline
 
 import gensim
 import gensim.corpora as corpora
@@ -82,6 +95,33 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import wordcloud
 from wordcloud.wordcloud import STOPWORDS
+
+################################
+#Text matching
+################################
+from sentence_transformers import SentenceTransformer
+from scipy import spatial
+import json
+import re
+import torch
+from nltk import tokenize
+
+
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+#import config
+
+model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/model/paraphrase-distilroberta-base-v1')
+
+# Regex string for extract specific chartacters/ numbers
+regex_str = r'\d{5,8}'
+
+#Read Docx files
+
+import docx2txt
+from PyPDF2 import PdfFileReader
+
 
 #################################
 #Lottie Animation
@@ -105,6 +145,21 @@ lottie_home=load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3
 lottie_home2=load_lottiefile(proj_dir + "/Hami_home.json")
 
 
+##################################
+#PDF Reader
+##################################
+def readpdf(file):
+    # Load PDF into pyPDF
+    pdf = PdfFileReader(file)
+    # Extract the first page
+    count = PdfFileReader.numPages
+    all_page_text=""
+    for i in range(count):
+        page = pdf.getPage(i)
+        page_text = page.extractText()
+        all_page_text+=page_text
+    return all_page_text
+
 
 #%matplotlib inline
 
@@ -112,7 +167,14 @@ import pyLDAvis
 import pyLDAvis.sklearn
 import pyLDAvis.gensim_models
 st.set_option('deprecation.showPyplotGlobalUse', False)
+
 #pyLDAvis.enable_notebook()
+
+
+# Load Text Cleaning Pkgs
+import neattext.functions as nfx
+
+
 
 #@st.cache
 #Text Preprocessing
@@ -149,6 +211,9 @@ def sent_to_words(sentence):
 
 stopwords=stopwords.words('english')
 stopwords.extend(['list', 'nan', 'link', 'type', 'thing', 'Haha','OK',"'lol'",'nil',"nil'","https","www","think","like","text","lol","no'","like'","text","com","2021","covid","19","vaccine","'"])
+
+#############################
+
 
 
 
@@ -337,71 +402,97 @@ def main():
                 #Uploader
                 
                 dff=st.file_uploader("Choose a file to Upload",
-                    type=["xlsx","csv","json"])
+                    type=["xlsx","csv","json","docx","xls"])
+
+                
 
                 global data #To make it available outside the if statement
+
                 if dff is not None:
                     try:
-                        data=pd.read_csv(dff)
-                    except Exception as e:
-                        data=pd.read_excel(dff)
-                    #except Exception as e:
-                    #    with open(dff, 'w') as f:
-                    #        json.dump(dff, f)
-                    #    #yy=json_normalize(dff)
-                    #    data=pd.read_json(dff)
+                        #un-comment for accessing by sheet names
+                        #sheets=["FG1 HQ Exec","FG2","FG3","FG4","FG5","FG6 Ops Manager"]                            
+                        data=pd.read_excel(dff)#,sheet_name=sheet_name)
+                        col_select=st.selectbox(
+                        label="Select the column for analysis",
+                        options=data.columns
+                        )                             
+                        #sheets=get_sheet_details(data)
+                        #sheet_name=st.selectbox('select the sheet:',options=sheets)
+
+                        #Remove empty rows
+                        #data=data.dropna()
+                        st.dataframe(data)
+                        data[col_select] = data[col_select].astype(str)
+                        data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))
+
+                        #DATA_COLUMN
+                        data[col_select] = data[col_select].astype(str)
+                        data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))      
+                        filtered_data = data['clean_text']
+                        topic_corpus = filtered_data.astype(str)
+                        topic_text = topic_corpus.values.tolist()
+                        topic_corpus_words = list(para_to_sents(topic_text))
+
+
+                            
+                    except ValueError as error:
+                            data=pd.read_csv(dff)
+                            col_select=st.selectbox(
+                            label="Select the column for analysis",
+                            options=data.columns
+                            )                        
+
+                            #data=data.dropna()
+                            st.dataframe(data)
+                            data[col_select] = data[col_select].astype(str)
+                            data['clean_text']=data[col_select]
+                            #data['clean_text']=data.loc[data[col_select].str.len()>2]
+                            remove_list=['list','nan','joined','forward']
+                            #data=data.loc[~data['clean_text'].str.lower().str.contains('|'.join(remove_list),na=False)]
+                            data['clean_text'] = data['clean_text'].astype(str)
+                            # User handles
+                            data['clean_text'] = data['clean_text'].apply(nfx.remove_userhandles)
+
+                            # User html_tags
+                            data['clean_text'] = data['clean_text'].apply(nfx.remove_html_tags)
+
+                            #Stopwords
+                            data['clean_text'] = data['clean_text'].apply(nfx.remove_stopwords)
+
+                            #Stopwords
+                            data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)
+                            data['clean_text']=data['clean_text'].apply(lambda text: text_preprocessing(text))
+
+                            global numeric_columns
+                            global non_numeric_columns
+                            global column_options
+
+
+                            numeric_columns=list(data.select_dtypes(['float','int']).columns)
+                            non_numeric_columns=list(data.select_dtypes(['object']).columns)
+                            date_column=data.select_dtypes(['datetime']).columns
+                            date_column.drop_duplicates()
+                            column_options=list(set(non_numeric_columns))
+
+
+                            #DATA_COLUMN
+                            data[col_select] = data[col_select].astype(str)
+                            data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))      
+                            filtered_data = data['clean_text']
+                            topic_corpus = filtered_data.astype(str)
+                            topic_text = topic_corpus.values.tolist()
+                            topic_corpus_words = list(para_to_sents(topic_text))                              
+                                               
+                    
+
                     #File details
                     file_details = {"Filename":dff.name,
                     "FileType":dff.type,"FileSize":dff.size}
                     st.write(file_details)
-
-                global numeric_columns
-                global non_numeric_columns
-                global column_options
-
-                try:
-
-                    numeric_columns=list(data.select_dtypes(['float','int']).columns)
-                    non_numeric_columns=list(data.select_dtypes(['object']).columns)
-                    #text_columns=data.select_dtypes(['object']).columns
-                    column_options=list(set(non_numeric_columns))
-
                 
-
-                    non_numeric_columns.append(None)
-                    col_select=st.selectbox(
-                    label="Select the column for analysis",
-                    options=data.columns
-                    )
-                    st.dataframe(data)
-                    data[col_select] = data[col_select].astype(str)
-                    data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))
-
-                    #DATA_COLUMN
-                    data[col_select] = data[col_select].astype(str)
-                    data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))      
-                    filtered_data = data[col_select]
-                    topic_text = filtered_data.astype(str)
-                    topic_corpus = topic_text.values.tolist()
-                    topic_corpus_words = list(para_to_sents(topic_corpus))
-
-                    
-
-
-
-
-
-
-                    st.header("**Data Exploration**")
-                    pr=ProfileReport(data,explorative=False,orange_mode=True,minimal=False,samples=None,correlations=None,missing_diagrams=None,duplicates=None,interactions=None,)
-                    #st_profile_report(pr)
-
-
-
-
-                except Exception as e:
-                    print(e)
-                    st.warning("you need to upload a csv or excel file to start the analysis")
+                else:
+                    st.warning("you need to upload a file to start the analysis")
 
 
 
@@ -418,7 +509,8 @@ def main():
                     #Submit button
                     with st.form(key="form1"):
                         #SelectBox
-                        options=st.radio("Select the task",["Topic Modelling","Entity analysis","Sentiment Prediction","Text Summarization"])
+                        options=st.radio("Select the task",["Topic Modelling","Entity analysis","Sentiment Analysis","Emotion Detection","Text Summarization",
+                        "Subjectivity Analysis","Text Similarity"])
                         submit=st.form_submit_button(label="Submit")
 
                         
@@ -428,167 +520,265 @@ def main():
                         #########################
                         #TOPIC MODELLING
                         #########################
-                        col1,col2,col3,col4=st.columns(4)   
-                        with col1:
-                            minimum_df=st.slider('slide to set min_df',min_value=1,max_value=8,help="Minimum required occurences of a word")
-                        with col2:
-                            collect_numbers = lambda x : [int(i) for i in re.split("[^0-9]", x) if i != ""]
-                            number_of_topics=st.text_input('Enter number of topics(minimum is 2)')
-                            ticks=(collect_numbers(number_of_topics))
-                        with col3:
-                            n_grams=st.slider('select a range of n-grams',1,5,(1,2),help="Assign the number ngram for keywords/phrases i.e.Bi-gram, tri-gram,...n-gram")
-                        with col4:
-                            keywords=st_tags('Enter custom Stopwords:','Press enter to add more',['hello'])
-                            
-                            stopwords.extend(keywords)
+
+
+                        keywords=st_tags('Enter custom Stopwords:','Press enter to add more',['hello'])
+                        
+                        stopwords.extend(keywords)
 
                                 
 
                         if options == "Topic Modelling" and submit:
-
-                        #Assignments
-
-
-
-                                
-
-
-
-                            topic_corpus_lemmatized = lemmatization(topic_corpus_words,
-                                allowed_postags=[
-                                    "NOUN",
-                                    "PROPN",
-                                    "ADJ",
-                                    "VERB",
-                                    "ADV",
-                                    "NUM",
-                                    "ORG",
-                                    "DATE",
-                                ],
-                            )
+                            try:
+                                #Assignments
+                                col1,col2,col3=st.columns(3)   
+                                with col1:
+                                    minimum_df=st.slider('slide to set min_df',min_value=1,max_value=8,help="Minimum required occurences of a word")
+                                with col2:
+                                    collect_numbers = lambda x : [int(i) for i in re.split("[^0-9]", x) if i != ""]
+                                    number_of_topics=st.text_input('Enter number of topics(minimum is 2)',"2")
+                                    ticks=(collect_numbers(number_of_topics))
+                                with col3:
+                                    n_grams=st.slider('select a range of n-grams',1,5,(1,2),help="Assign the number ngram for keywords/phrases i.e.Bi-gram, tri-gram,...n-gram")
 
 
-                            topic_vectorizer = CountVectorizer(
-                            analyzer="word",
-                            min_df=minimum_df,  
-                            stop_words=stopwords,
-                            ngram_range=n_grams
-                            )
+                            finally:       
 
-                            topic_corpus_vectorized = topic_vectorizer.fit_transform(topic_corpus_lemmatized)
 
-                            search_params = {
-                                "n_components": ticks,
-                            }
 
-                            # Initiate the Model
-                            topic_lda = LatentDirichletAllocation(
-                                max_iter=100, #default 10
-                                learning_method="batch",
-                                batch_size=32,
-                                learning_decay=0.7,
-                                random_state=42,)
+                                topic_corpus_lemmatized = lemmatization(topic_corpus_words,
+                                    allowed_postags=[
+                                        "NOUN",
+                                        "PROPN",
+                                        "ADJ",
+                                        "VERB",
+                                        "ADV",
+                                        "NUM",
+                                        "ORG",
+                                        "DATE",
+                                    ],
+                                )
 
-                            # Init Grid Search Class
-                            topic_model = GridSearchCV(topic_lda, cv=5, param_grid=search_params, n_jobs=-1, verbose=1)
 
-                            # Do the Grid Search
-                            topic_model.fit(topic_corpus_vectorized)
+                                topic_vectorizer = CountVectorizer(
+                                analyzer="word",
+                                min_df=minimum_df,  
+                                stop_words=stopwords,
+                                ngram_range=n_grams
+                                )
 
-                            # LDA Model
-                            topic_best_lda_model = topic_model.best_estimator_
+                                topic_corpus_vectorized = topic_vectorizer.fit_transform(topic_corpus_lemmatized)
 
-                            #pyLDAvis
-                            topic_panel=pyLDAvis.sklearn.prepare(
-                                topic_best_lda_model, topic_corpus_vectorized, topic_vectorizer, mds="tsne", R=50, sort_topics=False)
-                            pyLDAvis.save_html(topic_panel, proj_dir + '/topic_panel.html')
-                            
-                            #Creating new df with keywords count
-
-                            topic_keywords = topic_panel.topic_info[["Term", "Freq", "Total", "Category"]]
-
-                            topic_keywords = topic_keywords.rename(
-                                columns={
-                                    "Term": "Keyword",
-                                    "Freq": "Count in Topic",
-                                    "Total": "Count Overall",
-                                    "Category": "Topic",
+                                search_params = {
+                                    "n_components": ticks,
                                 }
-                            )
 
-                            topic_keywords["Topic"] = topic_keywords["Topic"].map(
-                                lambda x: str(x).replace("Default", "Overall Transcript")
-                            )
+                                # Initiate the Model
+                                topic_lda = LatentDirichletAllocation(
+                                    max_iter=100, #default 10
+                                    learning_method="batch",
+                                    batch_size=32,
+                                    learning_decay=0.7,
+                                    random_state=42,)
 
+                                # Init Grid Search Class
+                                topic_model = GridSearchCV(topic_lda, cv=5, param_grid=search_params, n_jobs=-1, verbose=1)
 
-                            #Creating new dataframe with dominant topics and probability scores
+                                # Do the Grid Search
+                                topic_model.fit(topic_corpus_vectorized)
 
-                            topic_lda_output = topic_best_lda_model.transform(topic_corpus_vectorized)
+                                # LDA Model
+                                topic_best_lda_model = topic_model.best_estimator_
 
-                            # column names
-                            Topicnames = ["Topic" + str(i+1) for i in range(topic_best_lda_model.n_components)]
-
-                            # index names
-                            Docnames = ["Doc" + str(i+1) for i in range(len(topic_corpus))]
-
-                            # Make the pandas dataframe
-                            Topics = pd.DataFrame(
-                                np.round(topic_lda_output, 2), columns=Topicnames, index=Docnames
-                            )
-
-                            # Get dominant topic for each document
-                            Dominant_topics = np.argmax(Topics.values, axis=1)
-                            Topics["DOMINANT_TOPIC"] = Dominant_topics+1
-
-                            topic_lemma_text = pd.DataFrame(topic_corpus_lemmatized, columns=["Lem_Text"])
-
-                            #Merging all 3 dataframes
-
-                            Topics.reset_index(inplace=True)
-
-                            topic_full_results = data.merge(topic_lemma_text, left_index=True, right_index=True).merge(
-                                Topics, left_index=True, right_index=True)
-                            topic_full_results.drop("index", axis=1, inplace=True)
-
-                            #exporting to excel
-                            topic_full_results.to_excel(proj_dir + "/Topics.xlsx", index=False)
-                            topic_keywords.to_excel(proj_dir + "/Keywords.xlsx", index=False)
-
-                            #importing for calling with st.dataframe()
-                            topic_full_results=pd.read_excel(proj_dir + "/Topics.xlsx")
-                            topic_keywords=pd.read_excel(proj_dir + "/Keywords.xlsx")
-
-
-                            #st.plotly_chart(topic_panel)
-                            html_string = pyLDAvis.prepared_data_to_html(topic_panel)
-                            from streamlit import components
-                            components.v1.html(html_string, width=1300, height=900, scrolling=False)
-                            
-                            col1,col2=st.columns(2)
-                            
-                            with col1:                                                
-                                st.write("**Dominant Topic Output**")
-                                fr=pd.read_excel(proj_dir + '/Topics.xlsx')
-                                st.dataframe(fr)
-                                #Export fr to excel
-                                towrite = io.BytesIO()
-                                downloaded_file = fr.to_excel(towrite, encoding='utf-8', index=False, header=True)
-                                towrite.seek(0)  # reset pointer
-                                b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Dominant_Topic.xlsx">Download Dominant_Topic file</a>'
-                                st.markdown(linko, unsafe_allow_html=True)
+                                #pyLDAvis
+                                topic_panel=pyLDAvis.sklearn.prepare(
+                                    topic_best_lda_model, topic_corpus_vectorized, topic_vectorizer, mds="tsne", R=50, sort_topics=False)
+                                pyLDAvis.save_html(topic_panel, proj_dir + '/topic_panel.html')
                                 
-                            with col2:
-                                st.write("**Keyword List**")
-                                kw=pd.read_excel(proj_dir + '/Keywords.xlsx')
-                                st.dataframe(kw)
-                                #Export kw to excel
-                                towrite = io.BytesIO()
-                                downloaded_file = kw.to_excel(towrite, encoding='utf-8', index=False, header=True)
-                                towrite.seek(0)  # reset pointer
-                                b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Keyword_list.xlsx">Download Keyword_list file</a>'
-                                st.markdown(linko, unsafe_allow_html=True)
+                                #Creating new df with keywords count
+
+                                topic_keywords = topic_panel.topic_info[["Term", "Freq", "Total", "Category"]]
+
+                                topic_keywords = topic_keywords.rename(
+                                    columns={
+                                        "Term": "Keyword",
+                                        "Freq": "Count in Topic",
+                                        "Total": "Count Overall",
+                                        "Category": "Topic",
+                                    }
+                                )
+
+                                topic_keywords["Topic"] = topic_keywords["Topic"].map(
+                                    lambda x: str(x).replace("Default", "Overall Transcript")
+                                )
+
+
+                                #Creating new dataframe with dominant topics and probability scores
+
+                                topic_lda_output = topic_best_lda_model.transform(topic_corpus_vectorized)
+
+                                # column names
+                                Topicnames = ["Topic" + str(i+1) for i in range(topic_best_lda_model.n_components)]
+
+                                # index names
+                                Docnames = ["Doc" + str(i+1) for i in range(len(topic_corpus))]
+
+                                # Make the pandas dataframe
+                                Topics = pd.DataFrame(
+                                    np.round(topic_lda_output, 2), columns=Topicnames, index=Docnames
+                                )
+
+                                # Get dominant topic for each document
+                                Dominant_topics = np.argmax(Topics.values, axis=1)
+                                Topics["DOMINANT_TOPIC"] = Dominant_topics+1
+
+                                topic_lemma_text = pd.DataFrame(topic_corpus_lemmatized, columns=["Lem_Text"])
+
+                                #Merging all 3 dataframes
+
+                                Topics.reset_index(inplace=True)
+
+                                topic_full_results = data.merge(topic_lemma_text, left_index=True, right_index=True).merge(
+                                    Topics, left_index=True, right_index=True)
+                                topic_full_results.drop("index", axis=1, inplace=True)
+
+                                #exporting to excel
+                                topic_full_results.to_excel(proj_dir + "/Topics.xlsx", index=False)
+                                topic_keywords.to_excel(proj_dir + "/Keywords.xlsx", index=False)
+
+                                #importing for calling with st.dataframe()
+                                topic_full_results=pd.read_excel(proj_dir + "/Topics.xlsx")
+                                topic_keywords=pd.read_excel(proj_dir + "/Keywords.xlsx")
+
+
+                                #st.plotly_chart(topic_panel)
+                                html_string = pyLDAvis.prepared_data_to_html(topic_panel)
+                                from streamlit import components
+                                components.v1.html(html_string, width=1300, height=900, scrolling=False)
+                                
+                                col1,col2=st.columns(2)
+                                
+                                with col1:                                                
+                                    st.write("**Dominant Topic Output**")
+                                    fr=pd.read_excel(proj_dir + '/Topics.xlsx')
+                                    st.dataframe(fr)
+                                    #Export fr to excel
+                                    towrite = io.BytesIO()
+                                    downloaded_file = fr.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                                    towrite.seek(0)  # reset pointer
+                                    b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                    linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Dominant_Topic.xlsx">Download Dominant_Topic file</a>'
+                                    st.markdown(linko, unsafe_allow_html=True)
+                                    
+                                with col2:
+                                    st.write("**Keyword List**")
+                                    kw=pd.read_excel(proj_dir + '/Keywords.xlsx')
+                                    st.dataframe(kw)
+                                    #Export kw to excel
+                                    towrite = io.BytesIO()
+                                    downloaded_file = kw.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                                    towrite.seek(0)  # reset pointer
+                                    b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                    linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Keyword_list.xlsx">Download Keyword_list file</a>'
+                                    st.markdown(linko, unsafe_allow_html=True)
+
+
+
+                            ####################################################
+                            #TEXT SEARCHING
+                            ####################################################
+
+                        elif options == "Text Similarity" and submit:
+
+
+
+                            # ---------- Use Case Exception Config ----------
+                            # Specify a number form 1 ~ 10, higher is more strict
+                            StrictLevel = 1
+                            # Confirmation target sentence
+                            TargetSentence = 'Digital Security Act'
+                            # Confirmation key words in agent's sentences
+                            TargetKeyWords = ['public safety', 'public discipline', 'racial hostility']
+                            # Confirmation response key words in customer's sentences
+                            AdditionalTargetKeyWords = ['Sedition', 'seditious', 'sure', 'ok', 'can', 'correct', 'accept', 'thank']
+                            # Verification target sentence
+                            VerificationTargetSentence = 'Propaganda against the state'
+                            # Verification key words in agent's sentences
+                            VerificationAgentKeyWords = ['religious values', 'religious sentiment', 'malicious', 'dishonest intention', 'panic']
+                            # Verification response key words in customer's sentences
+                            VerificationCustomerKeyWords = ['islam', 'insults', 'race', 'violence']
+                            def _check_word_in_sentence(words: list, sentence: str) -> bool:
+                                # Tokenize the sentence into tokens
+                                tokens = [word.lower() for word in tokenize.word_tokenize(sentence)]
+                                for word in words:
+                                    if word in tokens:
+                                        return True
+                                return False                            
+
+                            def detect_user_confirmation(df: pd.DataFrame) -> dict:
+                                    # Tokenize the sentence
+                                sentence_list = []
+                                for index, row in df.iterrows():
+                                    sentences = [sent for sent in nltk.sent_tokenize(row[col_select])]
+                                    for sentence in sentences:
+                                        sentence_list.append([index, sentence])
+                                sentence_df = pd.DataFrame(sentence_list, columns=['index','text'])
+
+                                # Get the sentence embedding
+                                sentence_df['embedding'] = sentence_df['text'].apply(lambda text: model.encode(text))
+
+                                # Get the sentence embedding for target sentences
+                                confirmation_sentence = TargetSentence
+
+                                confirmation_embedding = model.encode(confirmation_sentence)
+
+                                # Calculate the similarity
+                                sentence_df['confirmation_sim'] = sentence_df['embedding'].apply(
+                                    lambda x: 1 - spatial.distance.cosine(x, confirmation_embedding))
+
+                                # Calculate the rank of the similarity
+                                sentence_df['confirmation_order'] = sentence_df['confirmation_sim'].rank(method='first', ascending=False)
+
+                                # Whether the confirmation is done
+                                # 0: No, 1: Agent said, but customer has no response; 2: Yes
+                                confirmation = 0
+                                # Details
+                                confirmation_detail = []
+                                #agent = sentence_df.iloc[0]['speaker']
+
+                                for index, row in sentence_df.iterrows():
+                                    if (row['confirmation_order'] <= 11 - StrictLevel) & \
+                                            (row['confirmation_sim'] > 0.35) & \
+                                            _check_word_in_sentence(TargetKeyWords, row['text']):
+                                        print('Confirmation by Agent:', row['text'])
+                                        confirmation = 2 if confirmation == 2 else 1
+                                        temp_dict = {
+                                            'index': int(row['index']),
+                                            'text': row['text']
+                                        }
+                                        if temp_dict not in confirmation_detail:
+                                            confirmation_detail.append(temp_dict)
+                                        for i in range(index + 1, index + 8 - int(StrictLevel / 2)):
+                                            if i < len(sentence_df):
+                                                new_row = sentence_df.iloc[i]
+                                                print('Line {}: {}'.format(i, new_row['text']))
+                                                if _check_word_in_sentence(AdditionalTargetKeyWords, new_row['text']):
+                                                    confirmation = 2
+                                                    break
+
+                                return {
+                                    'confirmation': {
+                                        #'status': confirmation,
+                                        'details': confirmation_detail
+                                    }
+                                }
+
+
+                            st.write("**Text Searching**")
+                            df = data
+                            #df = df.dropna()
+                            result = detect_user_confirmation(df)
+                            st.write(json.dumps(result))
 
 
 
@@ -599,10 +789,7 @@ def main():
 
 
 
-
-
-
-                        elif options == "Entity analysis":
+                        elif options == "Entity analysis" and submit:
 
 
 
@@ -635,7 +822,7 @@ def main():
 
                                 person_list = []
                                 for ent in tokens.ents:
-                                    if ent.label_ == 'PERSON':
+                                    if ent.label_ == 'PERSON' and ent.text not in stopwords:
                                         person_list.append(ent.text)
                                 person_counts = Counter(person_list).most_common(20)
                                 df_person = pd.DataFrame(person_counts, columns =['text', 'count'])
@@ -648,7 +835,7 @@ def main():
 
                                 norp_list = []
                                 for ent in tokens.ents:
-                                    if ent.label_ == 'NORP':
+                                    if ent.label_ == 'NORP' and ent.text not in stopwords:
                                         norp_list.append(ent.text)
                                 norp_counts = Counter(norp_list).most_common(20)
                                 df_norp = pd.DataFrame(norp_counts, columns =['text', 'count'])                                
@@ -661,7 +848,7 @@ def main():
 
                                 org_list = []
                                 for ent in tokens.ents:
-                                    if ent.label_ == 'ORG':
+                                    if ent.label_ == 'ORG' and ent.text not in stopwords:
                                         org_list.append(ent.text)
                                         
                                 org_counts = Counter(org_list).most_common(20)
@@ -675,7 +862,7 @@ def main():
 
                                 prod_list = []
                                 for ent in tokens.ents:
-                                    if ent.label_ == 'PRODUCT':
+                                    if ent.label_ == 'PRODUCT' and ent.text not in stopwords:
                                         prod_list.append(ent.text)
                                         
                                 prod_counts = Counter(prod_list).most_common(20)
@@ -688,7 +875,7 @@ def main():
                                 #EVENT: Named hurricanes, battles, wars, sports events,
                                 event_list = []
                                 for ent in tokens.ents:
-                                    if ent.label_ == 'EVENT':
+                                    if ent.label_ == 'EVENT' and ent.text not in stopwords:
                                         event_list.append(ent.text)
 
                                 event_counts = Counter(event_list).most_common(20)
@@ -701,7 +888,7 @@ def main():
                                 #LAW: Named documents made into laws
                                 law_list= []
                                 for ent in tokens.ents:
-                                    if ent.label_ == 'LAW':
+                                    if ent.label_ == 'LAW' and ent.text not in stopwords:
                                         law_list.append(ent.text)
                                 
                                 law_counts = Counter(law_list).most_common(20)
@@ -714,7 +901,7 @@ def main():
                                 #WORK_OF_ART: Titles of books, songs
                                 workofart_list= []
                                 for ent in tokens.ents:
-                                    if ent.label_ == 'WORK_OF_ART':
+                                    if ent.label_ == 'WORK_OF_ART' and ent.text not in stopwords:
                                         workofart_list.append(ent.text)
                                 
                                 workofart_counts = Counter(workofart_list).most_common(20)
@@ -724,19 +911,22 @@ def main():
 
 
                             
-                            else:
+                            elif select_plot == "GPE : Countries, cities, states":
 
                                 #Countres, cities and states
 
                                 gpe_list = []
                                 for ent in tokens.ents:
-                                    if ent.label_ == 'GPE':
+                                    if ent.label_ == 'GPE' and ent.text not in stopwords:
                                         gpe_list.append(ent.text)
                                         
                                 gpe_counts = Counter(gpe_list).most_common(20)
                                 df_gpe = pd.DataFrame(gpe_counts, columns =['text', 'count'])
 
-                                st.pyplot(df_gpe.plot.barh(x='text', y='count',color="#e08a31" ,title="Countres, cities and states", figsize=(10,8)).invert_yaxis()) 
+                                st.pyplot(df_gpe.plot.barh(x='text', y='count',color="#e08a31" ,title="Countres, cities and states", figsize=(10,8)).invert_yaxis())
+
+                            else:
+                                st.stop()
 
                             
                                  
@@ -747,17 +937,105 @@ def main():
                             #Text Summarization
                             #########################    
                             
-                        elif options == "Text Summarization":
+                        elif options == "Text Summarization" and submit:
 
-                            summary=data['clean_text'].apply(lambda x: sumy_summarizer(x))
+
+                            #Lexrank
+
+                            ##Uncomment if wanted to run the summarization row wise
+                            #summary=data['clean_text'].apply(lambda x: sumy_summarizer(x))
                             sumy=sumy_summarizer(topic_corpus)
+                            st.write('Lex-Rank Summarizer')
                             st.success(sumy)
+                            
+                            #Luhn
+                            from sumy.summarizers.luhn import LuhnSummarizer
+                            summarizer_luhn = LuhnSummarizer()
+                            parser = PlaintextParser.from_string(topic_corpus,Tokenizer("english"))
+                            summary_1 =summarizer_luhn(parser.document,2)
+                            st.write('LUHN Summarizer',help="heurestic method")                            
+                            for sentence in summary_1:
+                                st.success(sentence)
+
+                            #LSA
+                            from sumy.summarizers.lsa import LsaSummarizer
+                            summarizer_lsa = LsaSummarizer()
+                            summary_2 =summarizer_lsa(parser.document,2)
+                            st.write('LSA Summarizer',help="Latent Semantic Analysis")                             
+                            for sentence in summary_2:
+                                st.success(sentence)
+
+                            #Using stopwords
+                            ## Alternative Method using stopwords
+                            from sumy.nlp.stemmers import Stemmer
+                            from sumy.utils import get_stop_words
+                            summarizer_lsa2 = LsaSummarizer()
+                            summarizer_lsa2 = LsaSummarizer(Stemmer("english"))
+                            summarizer_lsa2.stop_words = get_stop_words("english")
+                            st.write('LSA2 Summarizer',help="LSA using customized stopwords")                             
+                            for sentence in summarizer_lsa2(parser.document,2):
+                                st.success(sentence)
+
+                        elif options == "Subjectivity Analysis" and submit:
+                            
+
+
+                            from textblob import TextBlob
+                            #Create a function to get the subjectivity of the text
+                            #def sentiment_analysis(data):
+                            def getSubjectivity(text):
+                                    return TextBlob(text).sentiment.subjectivity                            
+
+
+                            #Create a function to get the polarity
+                            def getPolarity(text):
+                                return TextBlob(text).sentiment.polarity
+                            
+                            #Create two new columns ‘Subjectivity’ & ‘Polarity’
+                            data['TextBlob_Subjectivity'] = data['clean_text'].apply(getSubjectivity)
+                            data['TextBlob_Polarity'] = data['clean_text'].apply(getPolarity)
+                            def getAnalysis(score):
+                                if score < 0:
+                                    return 'Negative'
+                                elif score == 0:
+                                    return 'Neutral'
+                                else:
+                                    return 'Positive'
+                            data['TextBlob_Analysis'] = data['TextBlob_Polarity'].apply(getAnalysis)
+                            st.dataframe(data)
+                            #return data
+
+                            # Layered Time Series:
+                            date_cols=data.select_dtypes(include=['datetime']).columns.tolist()
+
+
+                            date_col_select=st.selectbox(label="Select the date-time column for analysis",options=date_cols)
+                                
+                            if date_col_select is not None:
+                                date_hist_plt=data[date_col_select].value_counts
+                                date_hist_fig=date_hist_plt.plot(kind='bar',figsize=(10,5))
+                                plt.title('Distribution of chats by date/time')
+                                plt.ylabel('Number of items', fontsize=12)
+                                plt.xlabel('Date / Time', fontsize=12)
+                                plt.xticks(rotation=45)
+                                for p in plt.gca().patches:
+                                            plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
+                                                textcoords='offset points')
+                                date_hist_fig=plt.show()
+                                st.pyplot(date_hist_fig)
+
+
+                                #time_emote = pd.Series(data=emot_count.values, index=data['week'].unique())
+                                #time_emote_plot=time_emote.plot(figsize=(16, 4), label="Emotion across timeline", legend=True)
+                                #time_emote_plot=plt.show()
+                                #st.pyplot(time_emote_plot)
 
                             #########################
                             #Sentiment Analysis
                             #########################
 
-                        elif options == "Sentiment Prediction":
+                        elif options == "Sentiment Analysis" and submit:
                             
                             data['vader_comp'] = data.apply(lambda x: sentiment_analyzer_scores(x.clean_text), axis=1, result_type='expand')
 
@@ -783,7 +1061,7 @@ def main():
                             col1,col2,col3=st.columns(3)
 
                             #Word cloud overall text
-                            topic_corpus = topic_text.values.tolist()
+                            topic_corpus = topic_text#.values.tolist()
                             #topic_corpus = ' '.join(map(str, topic_corpus)) 
 
                             #topic_corpus_words = list(sent_to_words(topic_corpus))
@@ -888,6 +1166,11 @@ def main():
                             plt.title('Sentiment count across chat data')
                             plt.ylabel('Number of Occurrences', fontsize=12)
                             plt.xlabel('Sentiment polarity', fontsize=12)
+                            plt.xticks(rotation=45)
+                            for p in plt.gca().patches:
+                                        plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
+                                            ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
+                                            textcoords='offset points')                            
                             sent=plt.show()
                             st.pyplot(sent)
 
@@ -901,6 +1184,54 @@ def main():
                             b64 = base64.b64encode(towrite.read()).decode()  # some strings
                             linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Sentiment_Prediction.xlsx">Download Sentiment_predictions file</a>'
                             st.markdown(linko, unsafe_allow_html=True)
+
+
+                            #########################
+                            # Emotion Analysis
+                            #########################
+
+
+                        elif options == "Emotion Detection" and submit:
+                            filename = '/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/model/emotion_classifier_pipe_lr_Nov_2021.pkl'
+                            # LogisticRegression Pipeline
+                            pipe_lr = Pipeline(steps=[('cv',CountVectorizer()),('lr',LogisticRegression())])
+                            pipeline_file = open(filename, 'rb')
+                            loaded_model=joblib.load(filename)
+                            
+                            
+
+
+
+                            data['emotion_predict'] = data['clean_text'].apply(lambda x: (loaded_model.predict([x]))[0])
+                            
+                            # plot the distribution of the predicted emotions
+                            emot_count = data['emotion_predict'].value_counts()
+
+                            plt.figure(figsize=(5,5))
+                            sns.barplot(emot_count.index, emot_count.values, alpha=0.8)
+                            plt.title('Emotion Analysis')
+                            plt.ylabel('Number of Occurrences', fontsize=12)
+                            plt.xlabel('Emotions Expressed in the text', fontsize=12)
+                            plt.xticks(rotation=45)
+                            # annotation on chart
+                            for p in plt.gca().patches:
+                                        plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
+                                            ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
+                                            textcoords='offset points')
+                            emot=plt.show()
+                            st.pyplot(emot)
+
+
+                            
+                            # Export to excel
+                            towrite = io.BytesIO()
+                            downloaded_file = data.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                            towrite.seek(0)  # reset pointer
+                            b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                            linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Emotion_Prediction.xlsx">Download Emotion_predictions file</a>'
+                            st.markdown(linko, unsafe_allow_html=True)                            
+
+
                 
                 st.checkbox("Numerical Data")
 
