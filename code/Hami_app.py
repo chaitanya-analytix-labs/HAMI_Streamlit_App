@@ -19,12 +19,14 @@ footer:before{
 """
 
 #PYNGROK
+from datetime import datetime
 from os import name
 from pickle import STOP
 import zipfile
 from pyngrok import ngrok
 import pickle
 import joblib
+from streamlit.elements.utils import clean_text
 
 
 #streamlit-tags
@@ -51,6 +53,7 @@ import nltk
 import re
 
 from streamlit.uploaded_file_manager import UploadedFile
+from traitlets.traitlets import default
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('vader_lexicon')
@@ -106,13 +109,18 @@ import re
 import torch
 from nltk import tokenize
 
-
+###############################
+# Drill down Analysis
+###############################
+import emoji
+import plotly.express as px
+from textblob import TextBlob   
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 #import config
 
-model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/model/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/model/paraphrase-distilroberta-base-v1')
 
 # Regex string for extract specific chartacters/ numbers
 regex_str = r'\d{5,8}'
@@ -212,6 +220,8 @@ def sent_to_words(sentence):
 stopwords=stopwords.words('english')
 stopwords.extend(['list', 'nan', 'link', 'type', 'thing', 'Haha','OK',"'lol'",'nil',"nil'","https","www","think","like","text","lol","no'","like'","text","com","2021","covid","19","vaccine","'"])
 
+#############################
+# Word count across timeline
 #############################
 
 
@@ -423,66 +433,69 @@ def main():
                         #Remove empty rows
                         #data=data.dropna()
                         st.dataframe(data)
-                        data[col_select] = data[col_select].astype(str)
-                        data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))
 
                         #DATA_COLUMN
                         data[col_select] = data[col_select].astype(str)
-                        data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))      
+                        data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))
+                        #data['clean_text']=data.loc[data[col_select].str.len()>2]
+                        remove_list=['list','nan','joined','forward']
+                        #data=data.loc[~data['clean_text'].str.lower().str.contains('|'.join(remove_list),na=False)]
+                        data['clean_text'] = data['clean_text'].astype(str)
+                        # User handles
+                        data['clean_text'] = data['clean_text'].apply(nfx.remove_userhandles)
+
+                        # User html_tags
+                        data['clean_text'] = data['clean_text'].apply(nfx.remove_html_tags)
+
+                        #Stopwords
+                        data['clean_text'] = data['clean_text'].apply(nfx.remove_stopwords)
+
+                        #Stopwords
+                        data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)                             
                         filtered_data = data['clean_text']
                         topic_corpus = filtered_data.astype(str)
                         topic_text = topic_corpus.values.tolist()
                         topic_corpus_words = list(para_to_sents(topic_text))
 
 
+
                             
                     except ValueError as error:
-                            data=pd.read_csv(dff)
-                            col_select=st.selectbox(
-                            label="Select the column for analysis",
-                            options=data.columns
-                            )                        
+                        data=pd.read_csv(dff)
+                        col_select=st.selectbox(
+                        label="Select the column for analysis",
+                        options=data.columns
+                        )                        
 
-                            #data=data.dropna()
-                            st.dataframe(data)
-                            data[col_select] = data[col_select].astype(str)
-                            data['clean_text']=data[col_select]
-                            #data['clean_text']=data.loc[data[col_select].str.len()>2]
-                            remove_list=['list','nan','joined','forward']
-                            #data=data.loc[~data['clean_text'].str.lower().str.contains('|'.join(remove_list),na=False)]
-                            data['clean_text'] = data['clean_text'].astype(str)
-                            # User handles
-                            data['clean_text'] = data['clean_text'].apply(nfx.remove_userhandles)
-
-                            # User html_tags
-                            data['clean_text'] = data['clean_text'].apply(nfx.remove_html_tags)
-
-                            #Stopwords
-                            data['clean_text'] = data['clean_text'].apply(nfx.remove_stopwords)
-
-                            #Stopwords
-                            data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)
-                            data['clean_text']=data['clean_text'].apply(lambda text: text_preprocessing(text))
-
-                            global numeric_columns
-                            global non_numeric_columns
-                            global column_options
+                        #data=data.dropna()
+                        st.dataframe(data)
 
 
-                            numeric_columns=list(data.select_dtypes(['float','int']).columns)
-                            non_numeric_columns=list(data.select_dtypes(['object']).columns)
-                            date_column=data.select_dtypes(['datetime']).columns
-                            date_column.drop_duplicates()
-                            column_options=list(set(non_numeric_columns))
 
 
-                            #DATA_COLUMN
-                            data[col_select] = data[col_select].astype(str)
-                            data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))      
-                            filtered_data = data['clean_text']
-                            topic_corpus = filtered_data.astype(str)
-                            topic_text = topic_corpus.values.tolist()
-                            topic_corpus_words = list(para_to_sents(topic_text))                              
+                        #DATA_COLUMN
+                        data[col_select] = data[col_select].astype(str)
+                        data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))
+                        #data['clean_text']=data.loc[data[col_select].str.len()>2]
+                        remove_list=['list','nan','joined','forward']
+                        #data=data.loc[~data['clean_text'].str.lower().str.contains('|'.join(remove_list),na=False)]
+                        data['clean_text'] = data['clean_text'].astype(str)
+                        # User handles
+                        data['clean_text'] = data['clean_text'].apply(nfx.remove_userhandles)
+
+                        # User html_tags
+                        data['clean_text'] = data['clean_text'].apply(nfx.remove_html_tags)
+
+                        #Stopwords
+                        data['clean_text'] = data['clean_text'].apply(nfx.remove_stopwords)
+
+                        #Stopwords
+                        data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)                             
+                        filtered_data = data['clean_text']
+                        topic_corpus = filtered_data.astype(str)
+                        topic_text = topic_corpus.values.tolist()
+                        topic_corpus_words = list(para_to_sents(topic_text))
+               
                                                
                     
 
@@ -510,7 +523,7 @@ def main():
                     with st.form(key="form1"):
                         #SelectBox
                         options=st.radio("Select the task",["Topic Modelling","Entity analysis","Sentiment Analysis","Emotion Detection","Text Summarization",
-                        "Subjectivity Analysis","Text Similarity"])
+                        "Time Series Analysis","Text Similarity","Drill down analysis"])
                         submit=st.form_submit_button(label="Submit")
 
                         
@@ -976,15 +989,29 @@ def main():
                             for sentence in summarizer_lsa2(parser.document,2):
                                 st.success(sentence)
 
-                        elif options == "Subjectivity Analysis" and submit:
+                        elif options == "Drill down analysis" and submit:
+                            total_emojis_list = list(data.emojis)
+                            emoji_dict = dict(Counter(total_emojis_list))
+                            emoji_dict = sorted(emoji_dict.items(), key=lambda x: x[1], reverse=True)
+
+                            emoji_df = pd.DataFrame(emoji_dict, columns=['emoji', 'count'])
+                            emoji_df.replace(to_replace='None', value=np.nan).dropna()
+                            emoji_df.replace(to_replace=0, value=np.nan).dropna()
+
+                            emogif = px.pie(emoji_df.loc[2:].head(60), hole=.5, values='count', names='emoji',
+                                        title='Emoji Distribution')
+                            emogif.update_traces(textposition='inside', textinfo='percent+label')
+                            st.plotly_chart(emogif)                             
                             
 
-
-                            from textblob import TextBlob
+                        elif options == "Time Series Analysis" and submit:
+                            
+ 
+                            
                             #Create a function to get the subjectivity of the text
                             #def sentiment_analysis(data):
                             def getSubjectivity(text):
-                                    return TextBlob(text).sentiment.subjectivity                            
+                                return TextBlob(text).sentiment.subjectivity                            
 
 
                             #Create a function to get the polarity
@@ -1002,34 +1029,82 @@ def main():
                                 else:
                                     return 'Positive'
                             data['TextBlob_Analysis'] = data['TextBlob_Polarity'].apply(getAnalysis)
-                            st.dataframe(data)
+
                             #return data
 
+
                             # Layered Time Series:
+                            # select date column by Time series
                             date_cols=data.select_dtypes(include=['datetime']).columns.tolist()
 
+                            col1,col2=st.columns(2)
+                            with col1:
+                                date_col_select=st.selectbox(label="Select the column with date-time",options =data.columns,index=1)
+                            
+                            with col2:
+                                from_col=st.selectbox(label="Select the column with user names",options =data.columns,index=1)
 
-                            date_col_select=st.selectbox(label="Select the date-time column for analysis",options=date_cols)
+
+                            if date_col_select and from_col is not None:
+                         
+                                data["datetime"] = pd.to_datetime(data[date_col_select])
+                                data.index = data['datetime']
+                                date_df = data.resample("D").sum()
+                                date_df.reset_index(inplace=True)
+
+                                date_df.groupby("datetime").agg({"TextBlob_Polarity": "sum",'TextBlob_Subjectivity' : 'sum'})
+
+
+                                col1,col2=st.columns(2)
+                                with col1:
+                                    fig1 = px.line(date_df, x="datetime", y="TextBlob_Polarity", title="Sentiments across timeline")
+                                    fig1.update_xaxes(nticks=30)
+                                    #sent_by_date=fig1.show()
+                                    st.plotly_chart(fig1)
+                                    
+                                with col2:
+                                    fig2 = px.line(date_df, x="datetime", y="TextBlob_Subjectivity", title="Subjectivity across timeline")
+                                    fig2.update_xaxes(nticks=30)
+                                    #subj_by_date=fig2.show()
+                                    st.plotly_chart(fig2)                                    
+
+
+                                # word_count across timeline
+                                people = data[from_col].unique()
+                                #data["emojis"] = data[col_select].apply(get_emojis_in_message, axis=1)
+
+
+
+                                def get_words_count(row):
+                                    message = row.clean_text
+                                    emojis = ""
+                                    # Telegram may save some messages as json
+                                    if message is None or type(message) != str:
+                                        return None
+                                    return re.sub("[^\w]", " ",  message).split().__len__()                            
                                 
-                            if date_col_select is not None:
-                                date_hist_plt=data[date_col_select].value_counts
-                                date_hist_fig=date_hist_plt.plot(kind='bar',figsize=(10,5))
-                                plt.title('Distribution of chats by date/time')
-                                plt.ylabel('Number of items', fontsize=12)
-                                plt.xlabel('Date / Time', fontsize=12)
-                                plt.xticks(rotation=45)
-                                for p in plt.gca().patches:
-                                            plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
-                                                ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
-                                                textcoords='offset points')
-                                date_hist_fig=plt.show()
-                                st.pyplot(date_hist_fig)
+                                data["word_count"] = data[["clean_text"]].apply(get_words_count,axis=1)                                
 
 
-                                #time_emote = pd.Series(data=emot_count.values, index=data['week'].unique())
-                                #time_emote_plot=time_emote.plot(figsize=(16, 4), label="Emotion across timeline", legend=True)
-                                #time_emote_plot=plt.show()
-                                #st.pyplot(time_emote_plot)
+                                W_count = px.line(data, x="datetime", y="word_count", title="Word count across timeline")
+                                W_count.update_xaxes(nticks=30)
+                                #subj_by_date=fig2.show()
+                                
+                                st.plotly_chart(W_count)   
+
+                                ##########################################################
+                                # EMOJI
+                                ##########################################################
+                          
+
+                                col1,col2=st.columns(2)                                                            
+                                with col1:
+                                    data["word_count"].resample("D").sum().sort_values(ascending=False).head(10).plot.barh()
+
+                                data["hour"] = data.datetime.dt.hour
+                                with col2:
+                                    st.plotly_chart(data.groupby("hour")["word_count"].sum().head(24).plot.barh())
+
 
                             #########################
                             #Sentiment Analysis
@@ -1191,18 +1266,28 @@ def main():
                             #########################
 
 
-                        elif options == "Emotion Detection" and submit:
-                            filename = '/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/model/emotion_classifier_pipe_lr_Nov_2021.pkl'
+                        elif options == "Emotion Detection" and submit: 
+
+
+
+                            filename = '/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/emotion_classifier_pipe_lr_Nov_2021.pkl'
                             # LogisticRegression Pipeline
                             pipe_lr = Pipeline(steps=[('cv',CountVectorizer()),('lr',LogisticRegression())])
                             pipeline_file = open(filename, 'rb')
                             loaded_model=joblib.load(filename)
+                            data['emotion_text'] = data[col_select].apply(nfx.remove_userhandles)                            
                             
-                            
+                            data['emotion_text'] = data['emotion_text'].apply(nfx.remove_userhandles)
+
+                            # User html_tags
+                            data['emotion_text'] = data['emotion_text'].apply(nfx.remove_html_tags)
+
+                            #Stopwords
+                            data['emotion_text'] = data['emotion_text'].apply(nfx.remove_urls)                            
 
 
 
-                            data['emotion_predict'] = data['clean_text'].apply(lambda x: (loaded_model.predict([x]))[0])
+                            data['emotion_predict'] = data['emotion_text'].apply(lambda x: (loaded_model.predict([x]))[0])
                             
                             # plot the distribution of the predicted emotions
                             emot_count = data['emotion_predict'].value_counts()
@@ -1220,7 +1305,8 @@ def main():
                                             textcoords='offset points')
                             emot=plt.show()
                             st.pyplot(emot)
-
+                          
+                            
 
                             
                             # Export to excel
