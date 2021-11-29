@@ -204,15 +204,15 @@ def text_preprocessing(text):
     # Remove special characters, numbers, punctuations, etc.
     text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
     # Remove duplicate spaces
-    text = re.sub(r'\s+', ' ', text)
+    #text = re.sub(r'\s+', ' ', text)
     # Remove the text present in between paranthases
-    text = re.sub(r'\([^)]*\)', '', text)
+    #text = re.sub(r'\([^)]*\)', '', text)
     # Remove the text present in between braces
-    text = re.sub(r'\{[^)]*\}', '', text)
+    #text = re.sub(r'\{[^)]*\}', '', text)
     # Remove the text present in between <>
-    text = re.sub(r'<[^)]*>', '', text)
+    #text = re.sub(r'<[^)]*>', '', text)
     # Remove the text present in between []
-    text = re.sub(r'\[[^)]*\]', '', text)
+    #text = re.sub(r'\[[^)]*\]', '', text)
     
 
     return text
@@ -454,11 +454,11 @@ def main():
 
                         #DATA_COLUMN
                         data[col_select] = data[col_select].astype(str)
-                        data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))
+                        
                         #data['clean_text']=data.loc[data[col_select].str.len()>2]
                         remove_list=['list','nan','joined','forward']
                         #data=data.loc[~data['clean_text'].str.lower().str.contains('|'.join(remove_list),na=False)]
-                        data['clean_text'] = data['clean_text'].astype(str)
+                        data['clean_text'] = data[col_select].astype(str)
                         # User handles
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_userhandles)
 
@@ -471,7 +471,10 @@ def main():
                         data['clean_text'] = data['clean_text'].apply(lambda x: ' '.join([word for word in x.split() if word not in (stopwords)]))
                         
                         #Remove URLs
-                        data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)                             
+                        data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)
+
+                        data['clean_text']=data['clean_text'].apply(lambda text: text_preprocessing(text))
+
                         filtered_data = data['clean_text']
                         topic_corpus = filtered_data.astype(str)
                         topic_text = topic_corpus.values.tolist()
@@ -495,11 +498,11 @@ def main():
 
                         #DATA_COLUMN
                         data[col_select] = data[col_select].astype(str)
-                        data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))
+
                         #data['clean_text']=data.loc[data[col_select].str.len()>2]
                         remove_list=['list','nan','joined','forward']
                         #data=data.loc[~data['clean_text'].str.lower().str.contains('|'.join(remove_list),na=False)]
-                        data['clean_text'] = data['clean_text'].astype(str)
+                        data['clean_text'] = data[col_select].astype(str)
                         # User handles
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_userhandles)
 
@@ -509,10 +512,14 @@ def main():
                         #Stopwords
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_stopwords)
                         # Exclude stopwords with Python's list comprehension and pandas.DataFrame.apply.
-                        data['clean_text'] = data['clean_text'].apply(lambda x: ' '.join([word for word in x.split() if word not in (stopwords)]))
+                        #data['clean_text'] = data['clean_text'].apply(lambda x: ' '.join([word for word in x.split() if word not in (stopwords)]))
 
                         # Remove URLs
-                        data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)                             
+                        data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)   
+
+                        #Text Preprocessing
+                        data['clean_text']=data['clean_text'].apply(lambda text: text_preprocessing(text))
+
                         filtered_data = data['clean_text']
                         topic_corpus = filtered_data.astype(str)
                         topic_text = topic_corpus.values.tolist()
@@ -1064,10 +1071,13 @@ def main():
 
                                 date_df.groupby("datetime").agg({"TextBlob_Polarity": "sum",'TextBlob_Subjectivity' : 'sum'})
 
+                                text_df = data[col_select].dropna()
+                                text = " ".join(review for review in data[col_select].dropna() if review is not None and type(review) == str)
+                                st.success("There are {} words in all the messages.".format(len(text)))  
 
                                 col1,col2=st.columns(2)
                                 with col1:
-                                    fig1 = px.line(date_df, x="datetime", y="TextBlob_Polarity", title="Sentiments across timeline")
+                                    fig1 = px.line(date_df, x="datetime", y="TextBlob_Polarity", title="Sentiment aggregate across timeline")
                                     fig1.update_xaxes(nticks=30)
                                     #sent_by_date=fig1.show()
                                     st.plotly_chart(fig1)
@@ -1096,7 +1106,7 @@ def main():
                                 data["word_count"] = data[["clean_text"]].apply(get_words_count,axis=1)                                
 
 
-                                W_count = px.line(data, x="datetime", y="word_count", title="Word count across timeline")
+                                W_count = px.line(data, x="datetime", y="word_count", title="Total length of conversation across timeline")
                                 w_count_axes=W_count.update_xaxes(nticks=30)
                                 #subj_by_date=fig2.show()
                                 with col2:
@@ -1110,7 +1120,7 @@ def main():
                                 col1,col2=st.columns(2)                                                            
                                 with col1:
                                     w_count_sort=data["word_count"].resample("D").sum().sort_values(ascending=False).head(10)
-                                    w_count_sort_axes=px.bar(w_count_sort, title="Top 10 word counts across timeline")
+                                    w_count_sort_axes=px.bar(w_count_sort, title="When was the most conversations across timeline ? [Top 10]")
                                     fig = go.Figure(w_count_sort_axes)
                                     st.plotly_chart(fig)
                                     #st.pyplot(hrs_D.plot.barh(x=hrs_D.index, y=hrs_D.values, title="Top 10 words by day"))
@@ -1118,20 +1128,18 @@ def main():
                                 data["hour"] = data.datetime.dt.hour
                                 with col2:
                                     w_count_hrs=data.groupby("hour")["word_count"].sum().head(24)
-                                    w_count_hrs_axes=px.bar(w_count_hrs, title="Top 10 word counts by hour")
+                                    w_count_hrs_axes=px.bar(w_count_hrs, title="Which hour of the day were the users active?")
                                     fig = go.Figure(w_count_hrs_axes)
                                     st.plotly_chart(fig)
 
-                                text_df = data[col_select].dropna()
-                                text = " ".join(review for review in data[col_select].dropna() if review is not None and type(review) == str)
-                                st.success("There are {} words in all the messages.".format(len(text)))    
+  
 
                                 #sumy_10=data[["datetime","hour",from_col,"word_count","clean_text"]]
                                 sumy_10=data[[from_col,"word_count","clean_text"]]
                               
                                 sumy_10=sumy_10.sort_values(by=["word_count"],ascending=False)
                                 sumy_10=sumy_10.head(10)
-                                st.dataframe(sumy_10)
+                                #st.dataframe(sumy_10)
                                 towrite = io.BytesIO()
                                 downloaded_file = sumy_10.to_excel(towrite, encoding='utf-8', index=False, header=True)
                                 towrite.seek(0)  # reset pointer
@@ -1139,10 +1147,28 @@ def main():
                                 linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Most_word_count.xlsx">Download Sentiment_predictions file</a>'
                                 st.markdown(linko, unsafe_allow_html=True)
 
+                                def dayofweek(i):
+                                    l = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                                    return l[i];
+                                day_df=pd.DataFrame(data["word_count"])
+                                day_df['day_of_date'] = data['datetime'].dt.weekday
+                                day_df['day_of_date'] = day_df["day_of_date"].apply(dayofweek)
+                                day_df["messagecount"] = 1
+                                day = day_df.groupby("day_of_date").sum()
+                                day.reset_index(inplace=True)
 
-                                filtered_sumy_10 = sumy_10['clean_text']
-                                sumy_10_summary=sumy_summarizer(filtered_sumy_10)
-                                st.success(sumy_10_summary)
+                                fig = px.line_polar(day, r='messagecount', theta='day_of_date', line_close=True,title="How active were the users on each day of the week")
+                                fig.update_traces(fill='toself')
+                                fig.update_layout(
+                                polar=dict(
+                                    radialaxis=dict(
+                                    visible=True
+                                    )),
+                                showlegend=False
+                                )
+                                #fig.show()
+                                st.write("How active were the users on each day of the week")
+                                st.plotly_chart(fig)
 
                             #########################
                             #Sentiment Analysis
@@ -1343,6 +1369,8 @@ def main():
                                             textcoords='offset points')
                             emot=plt.show()
                             st.pyplot(emot)
+
+                            st.dataframe(data)
                           
                             
 
