@@ -1073,7 +1073,7 @@ def main():
 
                                 text_df = data[col_select].dropna()
                                 text = " ".join(review for review in data[col_select].dropna() if review is not None and type(review) == str)
-                                st.success("There are {} words in all the messages.".format(len(text)))  
+                                st.success("There are {} words in the selected text input data.".format(len(text)))  
 
                                 col1,col2=st.columns(2)
                                 with col1:
@@ -1144,7 +1144,7 @@ def main():
                                 downloaded_file = sumy_10.to_excel(towrite, encoding='utf-8', index=False, header=True)
                                 towrite.seek(0)  # reset pointer
                                 b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Most_word_count.xlsx">Download Sentiment_predictions file</a>'
+                                linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Most_word_count.xlsx">Download excel with top 10 word counts</a>'
                                 st.markdown(linko, unsafe_allow_html=True)
 
                                 def dayofweek(i):
