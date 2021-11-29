@@ -27,6 +27,7 @@ from pyngrok import ngrok
 import pickle
 import joblib
 from streamlit.elements.utils import clean_text
+from streamlit.proto.PlotlyChart_pb2 import Figure
 
 
 #streamlit-tags
@@ -114,6 +115,7 @@ from nltk import tokenize
 ###############################
 import emoji
 import plotly.express as px
+import plotly.graph_objects as go
 from textblob import TextBlob   
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -197,6 +199,22 @@ def text_preprocessing(text):
     text = re.sub(r'(\W|^)[\w.\-]{0,25}@(yahoo|hotmail|gmail)\.com(\W|$)', ' ', text)
     #Remove new line characters
     text = re.sub(r'\s+', ' ', text).strip()
+    # Remove URLs
+    text = re.sub(r'http\S+', '', text)
+    # Remove special characters, numbers, punctuations, etc.
+    text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
+    # Remove duplicate spaces
+    text = re.sub(r'\s+', ' ', text)
+    # Remove the text present in between paranthases
+    text = re.sub(r'\([^)]*\)', '', text)
+    # Remove the text present in between braces
+    text = re.sub(r'\{[^)]*\}', '', text)
+    # Remove the text present in between <>
+    text = re.sub(r'<[^)]*>', '', text)
+    # Remove the text present in between []
+    text = re.sub(r'\[[^)]*\]', '', text)
+    
+
     return text
 
 #@st.cache
@@ -218,7 +236,7 @@ def sent_to_words(sentence):
 #Prepare Stopwords
 
 stopwords=stopwords.words('english')
-stopwords.extend(['list', 'nan', 'link', 'type', 'thing', 'Haha','OK',"'lol'",'nil',"nil'","https","www","think","like","text","lol","no'","like'","text","com","2021","covid","19","vaccine","'"])
+stopwords.extend(['list','listtype','listlisttype', 'nan', 'link', 'type', 'thing', 'Haha','OK',"'lol'",'nil',"nil'","https","www","think","like","text","lol","no'","like'","text","com","2021","covid","19","vaccine","'"])
 
 #############################
 # Word count across timeline
@@ -447,10 +465,12 @@ def main():
                         # User html_tags
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_html_tags)
 
-                        #Stopwords
+                        # Remove custom Stopwords
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_stopwords)
-
-                        #Stopwords
+                        # Exclude stopwords with Python's list comprehension and pandas.DataFrame.apply.
+                        data['clean_text'] = data['clean_text'].apply(lambda x: ' '.join([word for word in x.split() if word not in (stopwords)]))
+                        
+                        #Remove URLs
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)                             
                         filtered_data = data['clean_text']
                         topic_corpus = filtered_data.astype(str)
@@ -488,8 +508,10 @@ def main():
 
                         #Stopwords
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_stopwords)
+                        # Exclude stopwords with Python's list comprehension and pandas.DataFrame.apply.
+                        data['clean_text'] = data['clean_text'].apply(lambda x: ' '.join([word for word in x.split() if word not in (stopwords)]))
 
-                        #Stopwords
+                        # Remove URLs
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)                             
                         filtered_data = data['clean_text']
                         topic_corpus = filtered_data.astype(str)
@@ -523,7 +545,7 @@ def main():
                     with st.form(key="form1"):
                         #SelectBox
                         options=st.radio("Select the task",["Topic Modelling","Entity analysis","Sentiment Analysis","Emotion Detection","Text Summarization",
-                        "Time Series Analysis","Text Similarity","Drill down analysis"])
+                        "Time Series Analysis","Text Similarity"])
                         submit=st.form_submit_button(label="Submit")
 
                         
@@ -989,19 +1011,7 @@ def main():
                             for sentence in summarizer_lsa2(parser.document,2):
                                 st.success(sentence)
 
-                        elif options == "Drill down analysis" and submit:
-                            total_emojis_list = list(data.emojis)
-                            emoji_dict = dict(Counter(total_emojis_list))
-                            emoji_dict = sorted(emoji_dict.items(), key=lambda x: x[1], reverse=True)
-
-                            emoji_df = pd.DataFrame(emoji_dict, columns=['emoji', 'count'])
-                            emoji_df.replace(to_replace='None', value=np.nan).dropna()
-                            emoji_df.replace(to_replace=0, value=np.nan).dropna()
-
-                            emogif = px.pie(emoji_df.loc[2:].head(60), hole=.5, values='count', names='emoji',
-                                        title='Emoji Distribution')
-                            emogif.update_traces(textposition='inside', textinfo='percent+label')
-                            st.plotly_chart(emogif)                             
+                           
                             
 
                         elif options == "Time Series Analysis" and submit:
@@ -1061,12 +1071,12 @@ def main():
                                     fig1.update_xaxes(nticks=30)
                                     #sent_by_date=fig1.show()
                                     st.plotly_chart(fig1)
-                                    
-                                with col2:
-                                    fig2 = px.line(date_df, x="datetime", y="TextBlob_Subjectivity", title="Subjectivity across timeline")
-                                    fig2.update_xaxes(nticks=30)
-                                    #subj_by_date=fig2.show()
-                                    st.plotly_chart(fig2)                                    
+                                # Uncomment for subjectivity plot    
+                                #with col2:
+                                #    fig2 = px.line(date_df, x="datetime", y="TextBlob_Subjectivity", title="Subjectivity across timeline")
+                                #    fig2.update_xaxes(nticks=30)
+                                #    #subj_by_date=fig2.show()
+                                #    st.plotly_chart(fig2)                                    
 
 
                                 # word_count across timeline
@@ -1087,10 +1097,10 @@ def main():
 
 
                                 W_count = px.line(data, x="datetime", y="word_count", title="Word count across timeline")
-                                W_count.update_xaxes(nticks=30)
+                                w_count_axes=W_count.update_xaxes(nticks=30)
                                 #subj_by_date=fig2.show()
-                                
-                                st.plotly_chart(W_count)   
+                                with col2:
+                                    st.plotly_chart(w_count_axes)   
 
                                 ##########################################################
                                 # EMOJI
@@ -1099,12 +1109,40 @@ def main():
 
                                 col1,col2=st.columns(2)                                                            
                                 with col1:
-                                    data["word_count"].resample("D").sum().sort_values(ascending=False).head(10).plot.barh()
+                                    w_count_sort=data["word_count"].resample("D").sum().sort_values(ascending=False).head(10)
+                                    w_count_sort_axes=px.bar(w_count_sort, title="Top 10 word counts across timeline")
+                                    fig = go.Figure(w_count_sort_axes)
+                                    st.plotly_chart(fig)
+                                    #st.pyplot(hrs_D.plot.barh(x=hrs_D.index, y=hrs_D.values, title="Top 10 words by day"))
 
                                 data["hour"] = data.datetime.dt.hour
                                 with col2:
-                                    st.plotly_chart(data.groupby("hour")["word_count"].sum().head(24).plot.barh())
+                                    w_count_hrs=data.groupby("hour")["word_count"].sum().head(24)
+                                    w_count_hrs_axes=px.bar(w_count_hrs, title="Top 10 word counts by hour")
+                                    fig = go.Figure(w_count_hrs_axes)
+                                    st.plotly_chart(fig)
 
+                                text_df = data[col_select].dropna()
+                                text = " ".join(review for review in data[col_select].dropna() if review is not None and type(review) == str)
+                                st.success("There are {} words in all the messages.".format(len(text)))    
+
+                                #sumy_10=data[["datetime","hour",from_col,"word_count","clean_text"]]
+                                sumy_10=data[[from_col,"word_count","clean_text"]]
+                              
+                                sumy_10=sumy_10.sort_values(by=["word_count"],ascending=False)
+                                sumy_10=sumy_10.head(10)
+                                st.dataframe(sumy_10)
+                                towrite = io.BytesIO()
+                                downloaded_file = sumy_10.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                                towrite.seek(0)  # reset pointer
+                                b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Most_word_count.xlsx">Download Sentiment_predictions file</a>'
+                                st.markdown(linko, unsafe_allow_html=True)
+
+
+                                filtered_sumy_10 = sumy_10['clean_text']
+                                sumy_10_summary=sumy_summarizer(filtered_sumy_10)
+                                st.success(sumy_10_summary)
 
                             #########################
                             #Sentiment Analysis
