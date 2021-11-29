@@ -53,3 +53,9 @@ webencodings==0.5.1
 widgetsnbextension==3.5.1
 wordcloud==1.8.1
 xlrd==2.0.1
+plotly==4.14.3
+pyPdf==1.13
+PyPDF2==1.26.0
+pyplumber==0.1.9
+neattext==0.1.2
+emoji==1.6.1
