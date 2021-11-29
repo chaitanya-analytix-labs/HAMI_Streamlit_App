@@ -1054,13 +1054,18 @@ def main():
                             # select date column by Time series
                             date_cols=data.select_dtypes(include=['datetime']).columns.tolist()
 
-                            col1,col2=st.columns(2)
+                            col1,col2,col3=st.columns(3)
                             with col1:
                                 date_col_select=st.selectbox(label="Select the column with date-time",options =data.columns,index=1)
                             
                             with col2:
-                                from_col=st.selectbox(label="Select the column with user names",options =data.columns,index=1)
+                                from_col=st.selectbox(label="Select the column with user names",options =data.columns,index=4)
 
+                            with col3:
+                                people = data[from_col].unique()
+
+                                person=st.selectbox(label="Select the people",options =people,index=0)
+                            st.success("There were {} messages from the selected input.".format(len(people)))
 
                             if date_col_select and from_col is not None:
                          
@@ -1090,8 +1095,6 @@ def main():
 
 
                                 # word_count across timeline
-                                people = data[from_col].unique()
-                                #data["emojis"] = data[col_select].apply(get_emojis_in_message, axis=1)
 
 
 
@@ -1104,6 +1107,7 @@ def main():
                                     return re.sub("[^\w]", " ",  message).split().__len__()                            
                                 
                                 data["word_count"] = data[["clean_text"]].apply(get_words_count,axis=1)                                
+
 
 
                                 W_count = px.line(data, x="datetime", y="word_count", title="Total length of conversation across timeline")
@@ -1140,6 +1144,50 @@ def main():
                                 sumy_10=sumy_10.sort_values(by=["word_count"],ascending=False)
                                 sumy_10=sumy_10.head(10)
                                 #st.dataframe(sumy_10)
+                                
+                                sumy_filtered_data = sumy_10['clean_text']
+                                sumy_topic_corpus = filtered_data.astype(str)
+                                #topic_text = topic_corpus.values.tolist()
+
+
+
+                                st.subheader('Word cloud on Top 10 by conversation length')
+
+                                sumy_words=" "
+                                stopwords=stopwords
+
+                                #Iterate through csv file
+                                for val in sumy_topic_corpus:
+
+                                    #typecaste each val to string
+                                    val=str(val)
+
+                                    #split the vale
+                                    tokens=val.split(maxsplit=2)
+
+                                    #Converts each token into lowercase
+                                    for i in range(len(tokens)):
+                                        tokens[i]=tokens[i].lower()
+
+                                    sumy_words+=" ".join(tokens)+" "
+                                #width=1600,height=800, 
+                                wordcloud=WordCloud(background_color="White",
+                                stopwords=stopwords,min_font_size=10).generate(sumy_words)
+
+                                #ploting the word cloud overall texts
+                                sumy_fig=plt.figure(figsize=(8,8),facecolor=None)
+                                plt.imshow(wordcloud,interpolation='bilinear')
+                                plt.axis("off")
+                                plt.tight_layout(pad=0)
+                                col1,col2=st.columns(2)
+                                with col1:
+                                    st.write('**Word cloud on Top 10 by conversation length**')
+                                    st.pyplot(sumy_fig)                                
+                                
+                                
+                                
+                                # Download file
+                                
                                 towrite = io.BytesIO()
                                 downloaded_file = sumy_10.to_excel(towrite, encoding='utf-8', index=False, header=True)
                                 towrite.seek(0)  # reset pointer
@@ -1166,9 +1214,16 @@ def main():
                                     )),
                                 showlegend=False
                                 )
-                                #fig.show()
-                                st.write("How active were the users on each day of the week")
-                                st.plotly_chart(fig)
+                                with col2:
+                                    #fig.show()
+                                    st.write("How active were the users on each day of the week")
+                                    st.plotly_chart(fig)
+
+                                for name in people:
+                                    user_df = data[data[from_col] == name]
+                                    words_per_message = np.sum(user_df['word_count'])
+                                    #st.write('stats for ', name)
+                                    st.write(name,'sent',int(words_per_message),'words,average',words_per_message/user_df.shape[0],'per message')
 
                             #########################
                             #Sentiment Analysis
