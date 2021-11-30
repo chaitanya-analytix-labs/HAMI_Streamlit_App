@@ -43,12 +43,16 @@ import requests
 
 import docx2txt
 import collections
+
+try:
+    collectionsAbc = collections.abc
+except AttributeError:
+    collectionsAbc = collections
 import os
 #import xmltodict
 
 from typing import Optional
 import pandas as pd
-from pandas_profiling import ProfileReport
 import numpy as np
 import nltk
 import re
