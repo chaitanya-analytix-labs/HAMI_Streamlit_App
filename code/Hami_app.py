@@ -1397,7 +1397,7 @@ def main():
 
 
 
-                            filename = proj_dir + 'emotion_classifier_pipe_lr_Nov_2021.pkl'
+                            filename = proj_dir + '/emotion_classifier_pipe_lr_Nov_2021.pkl'
                             # LogisticRegression Pipeline
                             pipe_lr = Pipeline(steps=[('cv',CountVectorizer()),('lr',LogisticRegression())])
                             pipeline_file = open(filename, 'rb')
