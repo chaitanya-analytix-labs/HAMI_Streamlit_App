@@ -154,7 +154,7 @@ proj_dir = os.path.dirname(os.path.abspath(__file__))
 
 #import model file
 
-model = SentenceTransformer(proj_dir + 'paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer(proj_dir + 'paraphrase-distilroberta-base-v1')
 
 lottie_home=load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
@@ -988,6 +988,12 @@ def main():
 
                             ##Uncomment if wanted to run the summarization row wise
                             #summary=data['clean_text'].apply(lambda x: sumy_summarizer(x))
+                            #DATA_COLUMN
+                            data[col_select] = data[col_select].astype(str)
+                            data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))      
+                            filtered_data = data[col_select]
+                            topic_text = filtered_data.astype(str)
+                            topic_corpus = topic_text.values.tolist()                            
                             sumy=sumy_summarizer(topic_corpus)
                             st.write('Lex-Rank Summarizer')
                             st.success(sumy)
