@@ -150,7 +150,7 @@ def load_lottieurl(url: str):
         return None
     return r.json
 
-proj_dir = os.path.dirname(os.path.abspath(__file__))
+proj_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'models'))
 
 #import model file
 
