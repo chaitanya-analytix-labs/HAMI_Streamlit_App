@@ -557,7 +557,7 @@ def main():
                     #Submit button
                     with st.form(key="form1"):
                         #SelectBox
-                        options=st.radio("Select the task",["Topic Modelling","Entity analysis","Sentiment Analysis","Emotion Detection","Text Summarization",
+                        options=st.radio("Select the task",["Topic Modelling","Entity analysis","Sentiment Analysis","Emotion Analysis","Text Summarization",
                         "Time Series Analysis","Text Similarity"])
                         submit=st.form_submit_button(label="Submit")
 
