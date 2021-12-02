@@ -155,7 +155,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'mod
 
 #import model file
 
-model = SentenceTransformer(model_dir + 'paraphrase-distilroberta-base-v1')
+model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 
 lottie_home=load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
