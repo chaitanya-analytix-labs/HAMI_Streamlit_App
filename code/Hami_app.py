@@ -150,11 +150,12 @@ def load_lottieurl(url: str):
         return None
     return r.json
 
-proj_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'models'))
+proj_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ )))
+model_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'models'))
 
 #import model file
 
-#model = SentenceTransformer(proj_dir + 'paraphrase-distilroberta-base-v1')
+model = SentenceTransformer(model_dir + 'paraphrase-distilroberta-base-v1')
 
 lottie_home=load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
@@ -1397,7 +1398,7 @@ def main():
 
 
 
-                            filename = proj_dir + '/emotion_classifier_pipe_lr_Nov_2021.pkl'
+                            filename = model_dir + '/emotion_classifier_pipe_lr_Nov_2021.pkl'
                             # LogisticRegression Pipeline
                             pipe_lr = Pipeline(steps=[('cv',CountVectorizer()),('lr',LogisticRegression())])
                             pipeline_file = open(filename, 'rb')
