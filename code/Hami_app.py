@@ -1387,7 +1387,7 @@ def main():
                             #########################
 
 
-                        elif options == "Emotion Detection" and submit: 
+                        elif options == "Emotion Analysis" and submit: 
 
 
 
