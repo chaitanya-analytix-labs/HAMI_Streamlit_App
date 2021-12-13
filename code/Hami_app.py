@@ -122,6 +122,25 @@ import plotly.express as px
 import plotly.graph_objects as go
 from textblob import TextBlob   
 
+
+###############################
+#Twitter API packages
+###############################
+from tweepy import API 
+from tweepy import Cursor
+from tweepy.streaming import StreamListener
+from tweepy import OAuthHandler
+from tweepy import Stream
+
+from textblob import TextBlob
+
+import twitter_credentials
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import re
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -156,7 +175,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'mod
 #import model file
 
 model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
-
+#model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
 lottie_home=load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
 lottie_home2=load_lottiefile(proj_dir + "/Hami_home.json")
@@ -559,7 +578,7 @@ def main():
                     with st.form(key="form1"):
                         #SelectBox
                         options=st.radio("Select the task",["Topic Modelling","Entity analysis","Sentiment Analysis","Emotion Analysis","Text Summarization",
-                        "Time Series Analysis","Text Similarity"])
+                        "Time Series Analysis","Text Similarity","Twitter Sentiment Analysis"])
                         submit=st.form_submit_button(label="Submit")
 
                         
@@ -733,104 +752,93 @@ def main():
                             #TEXT SEARCHING
                             ####################################################
 
+
                         elif options == "Text Similarity" and submit:
 
 
-
-                            # ---------- Use Case Exception Config ----------
+                            ####################################################
                             # Specify a number form 1 ~ 10, higher is more strict
-                            StrictLevel = 1
+                            StrictLevel = st.slider("Strictness Level", 1, 10, 1)
                             # Confirmation target sentence
-                            TargetSentence = 'Digital Security Act'
+                            st.header("Enter a sentence or keyword to search for")
+                            TargetSentence = st.text_input('Enter sentence to be searched')
                             # Confirmation key words in agent's sentences
-                            TargetKeyWords = ['public safety', 'public discipline', 'racial hostility']
-                            # Confirmation response key words in customer's sentences
-                            AdditionalTargetKeyWords = ['Sedition', 'seditious', 'sure', 'ok', 'can', 'correct', 'accept', 'thank']
-                            # Verification target sentence
-                            VerificationTargetSentence = 'Propaganda against the state'
-                            # Verification key words in agent's sentences
-                            VerificationAgentKeyWords = ['religious values', 'religious sentiment', 'malicious', 'dishonest intention', 'panic']
-                            # Verification response key words in customer's sentences
-                            VerificationCustomerKeyWords = ['islam', 'insults', 'race', 'violence']
-                            def _check_word_in_sentence(words: list, sentence: str) -> bool:
-                                # Tokenize the sentence into tokens
-                                tokens = [word.lower() for word in tokenize.word_tokenize(sentence)]
-                                for word in words:
-                                    if word in tokens:
-                                        return True
-                                return False                            
+                            TargetKeyWords = st_tags('Enter target keywords:','Press enter to add',['vaccination'])
+                            # Confirmation response key words in customer's sentences       
 
-                            def detect_user_confirmation(df: pd.DataFrame) -> dict:
-                                    # Tokenize the sentence
-                                sentence_list = []
-                                for index, row in df.iterrows():
-                                    sentences = [sent for sent in nltk.sent_tokenize(row[col_select])]
-                                    for sentence in sentences:
-                                        sentence_list.append([index, sentence])
-                                sentence_df = pd.DataFrame(sentence_list, columns=['index','text'])
 
-                                # Get the sentence embedding
-                                sentence_df['embedding'] = sentence_df['text'].apply(lambda text: model.encode(text))
 
-                                # Get the sentence embedding for target sentences
-                                confirmation_sentence = TargetSentence
+                            ####################################################
+                            if TargetSentence is not None or TargetKeyWords != '':
 
-                                confirmation_embedding = model.encode(confirmation_sentence)
+                                try:
+                                    ####################################################
+                                    # Sentence Similarity
+                                    ####################################################
+                                    def _check_word_in_sentence(words: list, sentence: str) -> bool:
+                                    # Tokenize the sentence into tokens
+                                        tokens = [word.lower() for word in tokenize.word_tokenize(sentence)]
+                                        for word in words:
+                                            if word in tokens:
+                                                return True
+                                        return False  
 
-                                # Calculate the similarity
-                                sentence_df['confirmation_sim'] = sentence_df['embedding'].apply(
+                                    sentence_list = []
+                                    for index, row in data.iterrows():
+                                        sentences = [sent for sent in nltk.sent_tokenize(row[col_select])]
+                                        for sentence in sentences:
+                                            sentence_list.append([index, sentence])
+                                    sentence_df = pd.DataFrame(sentence_list, columns=['index','text'])
+
+                                    # Get the sentence embedding
+                                    sentence_df['embedding'] = sentence_df['text'].apply(lambda text: model.encode(text))
+
+                                    # Get the sentence embedding for target sentences
+                                    confirmation_sentence = TargetSentence
+
+                                    confirmation_embedding = model.encode(confirmation_sentence)
+
+                                    # Calculate the similarity
+                                    sentence_df['confirmation_sim'] = sentence_df['embedding'].apply(
                                     lambda x: 1 - spatial.distance.cosine(x, confirmation_embedding))
 
-                                # Calculate the rank of the similarity
-                                sentence_df['confirmation_order'] = sentence_df['confirmation_sim'].rank(method='first', ascending=False)
-
-                                # Whether the confirmation is done
-                                # 0: No, 1: Agent said, but customer has no response; 2: Yes
-                                confirmation = 0
-                                # Details
-                                confirmation_detail = []
-                                #agent = sentence_df.iloc[0]['speaker']
-
-                                for index, row in sentence_df.iterrows():
-                                    if (row['confirmation_order'] <= 11 - StrictLevel) & \
-                                            (row['confirmation_sim'] > 0.35) & \
-                                            _check_word_in_sentence(TargetKeyWords, row['text']):
-                                        print('Confirmation by Agent:', row['text'])
-                                        confirmation = 2 if confirmation == 2 else 1
+                                    # Calculate the rank of the similarity
+                                    sentence_df['confirmation_order'] = sentence_df['confirmation_sim'].rank(method='first', ascending=False)                            
+                    
+                                    temp_dict = {}
+                                    
+                                    for index, row in sentence_df.iterrows():
+                                        if (row['confirmation_order'] <= 11 - StrictLevel) and \
+                                                (row['confirmation_sim'] > 0.35) or \
+                                                _check_word_in_sentence(TargetSentence, row['text']):
+                                            st.write('Matched rows with Sentence:',int(row['index']), row['text'])
                                         temp_dict = {
                                             'index': int(row['index']),
                                             'text': row['text']
                                         }
-                                        if temp_dict not in confirmation_detail:
-                                            confirmation_detail.append(temp_dict)
-                                        for i in range(index + 1, index + 8 - int(StrictLevel / 2)):
-                                            if i < len(sentence_df):
-                                                new_row = sentence_df.iloc[i]
-                                                print('Line {}: {}'.format(i, new_row['text']))
-                                                if _check_word_in_sentence(AdditionalTargetKeyWords, new_row['text']):
-                                                    confirmation = 2
-                                                    break
+                                    #for keyword in TargetKeyWords:
+                                    for index, row in sentence_df.iterrows():
+                                        if (_check_word_in_sentence(TargetKeyWords, row['text'])):
+                                            st.write('Matched rows with keywords:',int(row['index']), row['text'])
 
-                                return {
-                                    'confirmation': {
-                                        #'status': confirmation,
-                                        'details': confirmation_detail
-                                    }
-                                }
+                                    st.write("**Text Similarity results**")
+                                    df = data
+                                    #df = df.dropna()
+                                    
+                                    st.write('Spreadsheet with similarity score for each row')
+                                    st.dataframe(sentence_df)#,sorted='confirmation_sim')
 
-
-                            st.write("**Text Searching**")
-                            df = data
-                            #df = df.dropna()
-                            result = detect_user_confirmation(df)
-                            st.write(json.dumps(result))
-
-
-
-
-
-
-
+                                    # Export to excel
+                                    towrite = io.BytesIO()
+                                    downloaded_file = sentence_df.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                                    towrite.seek(0)  # reset pointer
+                                    b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                    linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="similarity_score.xlsx">Download Similarity score file</a>'
+                                    st.markdown(linko, unsafe_allow_html=True)                                    
+                            
+                                except: 
+                                    st.warning("Please enter a sentence and keyword for finding a match")
+                                    
 
 
 
@@ -1126,7 +1134,7 @@ def main():
                                     st.plotly_chart(w_count_axes)   
 
                                 ##########################################################
-                                # EMOJI
+                                # word count
                                 ##########################################################
                           
 
@@ -1227,12 +1235,36 @@ def main():
                                     #fig.show()
                                     st.write("How active were the users on each day of the week")
                                     st.plotly_chart(fig)
+                                
 
+                                #Filtering by name
+                                #####################
+                                d = []
                                 for name in people:
                                     user_df = data[data[from_col] == name]
                                     words_per_message = np.sum(user_df['word_count'])
-                                    #st.write('stats for ', name)
-                                    st.write(name,'sent',int(words_per_message),'words,average',words_per_message/user_df.shape[0],'per message')
+                                    average_words=words_per_message/len(user_df)                                    
+                                    d.append(
+                                        {
+                                            'name': name,
+                                            'length of chats': int(words_per_message),
+                                            'word average per message':  words_per_message/user_df.shape[0]
+                                        }
+                                    )
+
+                            st.subheader('User stats')
+                            user_stat_df=pd.DataFrame(d)
+                            st.dataframe(user_stat_df)
+
+                            # Download file
+                            
+                            towrite = io.BytesIO()
+                            downloaded_file = user_stat_df.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                            towrite.seek(0)  # reset pointer
+                            b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                            linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="User_Metrics.xlsx">Download excel with user metrics</a>'
+                            st.markdown(linko, unsafe_allow_html=True)
+
 
                             #########################
                             #Sentiment Analysis
@@ -1445,7 +1477,181 @@ def main():
                             towrite.seek(0)  # reset pointer
                             b64 = base64.b64encode(towrite.read()).decode()  # some strings
                             linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Emotion_Prediction.xlsx">Download Emotion_predictions file</a>'
-                            st.markdown(linko, unsafe_allow_html=True)                            
+                            st.markdown(linko, unsafe_allow_html=True)  
+
+                        elif options == "Twitter Sentiment Analysis" and submit:
+
+
+
+                            # # # # TWITTER CLIENT # # # #
+                            class TwitterClient():
+                                def __init__(self, twitter_user=None):
+                                    self.auth = TwitterAuthenticator().authenticate_twitter_app()
+                                    self.twitter_client = API(self.auth)
+
+                                    self.twitter_user = twitter_user
+
+                                def get_twitter_client_api(self):
+                                    return self.twitter_client
+
+                                def get_user_timeline_tweets(self, num_tweets):
+                                    tweets = []
+                                    for tweet in Cursor(self.twitter_client.user_timeline, id=self.twitter_user).items(num_tweets):
+                                        tweets.append(tweet)
+                                    return tweets
+
+                                def get_friend_list(self, num_friends):
+                                    friend_list = []
+                                    for friend in Cursor(self.twitter_client.friends, id=self.twitter_user).items(num_friends):
+                                        friend_list.append(friend)
+                                    return friend_list
+
+                                def get_home_timeline_tweets(self, num_tweets):
+                                    home_timeline_tweets = []
+                                    for tweet in Cursor(self.twitter_client.home_timeline, id=self.twitter_user).items(num_tweets):
+                                        home_timeline_tweets.append(tweet)
+                                    return home_timeline_tweets
+
+
+                            # # # # TWITTER AUTHENTICATER # # # #
+                            class TwitterAuthenticator():
+
+                                def authenticate_twitter_app(self):
+                                    auth = OAuthHandler(twitter_credentials.CONSUMER_KEY, twitter_credentials.CONSUMER_SECRET)
+                                    auth.set_access_token(twitter_credentials.ACCESS_TOKEN, twitter_credentials.ACCESS_TOKEN_SECRET)
+                                    return auth
+
+                            # # # # TWITTER STREAMER # # # #
+                            class TwitterStreamer():
+                                """
+                                Class for streaming and processing live tweets.
+                                """
+                                def __init__(self):
+                                    self.twitter_autenticator = TwitterAuthenticator()    
+
+                                def stream_tweets(self, fetched_tweets_filename, hash_tag_list):
+                                    # This handles Twitter authetification and the connection to Twitter Streaming API
+                                    listener = TwitterListener(fetched_tweets_filename)
+                                    auth = self.twitter_autenticator.authenticate_twitter_app() 
+                                    stream = Stream(auth, listener)
+
+                                    # This line filter Twitter Streams to capture data by the keywords: 
+                                    stream.filter(track=hash_tag_list)
+
+
+                            # # # # TWITTER STREAM LISTENER # # # #
+                            class TwitterListener(StreamListener):
+                                """
+                                This is a basic listener that just prints received tweets to stdout.
+                                """
+                                def __init__(self, fetched_tweets_filename):
+                                    self.fetched_tweets_filename = fetched_tweets_filename
+
+                                def on_data(self, data):
+                                    try:
+                                        print(data)
+                                        with open(self.fetched_tweets_filename, 'a') as tf:
+                                            tf.write(data)
+                                        return True
+                                    except BaseException as e:
+                                        print("Error on_data %s" % str(e))
+                                    return True
+                                    
+                                def on_error(self, status):
+                                    if status == 420:
+                                        # Returning False on_data method in case rate limit occurs.
+                                        return False
+                                    print(status)
+
+
+                            class TweetAnalyzer():
+                                """
+                                Functionality for analyzing and categorizing content from tweets.
+                                """
+
+                                def clean_tweet(self, tweet):
+                                    return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
+
+                                def analyze_sentiment(self, tweet):
+                                    analysis = TextBlob(self.clean_tweet(tweet))
+                                    
+                                    if analysis.sentiment.polarity > 0:
+                                        return 1
+                                    elif analysis.sentiment.polarity == 0:
+                                        return 0
+                                    else:
+                                        return -1
+
+                                def tweets_to_data_frame(self, tweets):
+                                    df = pd.DataFrame(data=[tweet.text for tweet in tweets], columns=['tweets'])
+
+                                    df['id'] = np.array([tweet.id for tweet in tweets])
+                                    df['len'] = np.array([len(tweet.text) for tweet in tweets])
+                                    df['date'] = np.array([tweet.created_at for tweet in tweets])
+                                    df['source'] = np.array([tweet.source for tweet in tweets])
+                                    df['likes'] = np.array([tweet.favorite_count for tweet in tweets])
+                                    df['retweets'] = np.array([tweet.retweet_count for tweet in tweets])
+
+                                    return df
+
+                            
+                            if __name__ == '__main__':
+
+                                twitter_client = TwitterClient()
+                                tweet_analyzer = TweetAnalyzer()
+
+                                api = twitter_client.get_twitter_client_api()
+
+                                twitter_handle=st.text_input("Enter the Twitter Handle")
+
+                                tweet_count=st.slider("Number of Tweets", min_value=1, max_value=10000, value=200)
+
+                                if twitter_handle is not None:
+
+                                    try:
+
+
+                                        tweets = api.user_timeline(screen_name=twitter_handle, count=tweet_count)
+
+
+
+                                        df = tweet_analyzer.tweets_to_data_frame(tweets)
+                                        df['sentiment'] = np.array([tweet_analyzer.analyze_sentiment(tweet) for tweet in df['tweets']])
+
+
+                                        st.dataframe(df)
+
+                                        # plot the distribution of the predicted emotions
+                                        tweet_sent_count = df['sentiment'].value_counts()
+
+                                        plt.figure(figsize=(5,5))
+                                        sns.barplot(tweet_sent_count.index, tweet_sent_count.values, alpha=0.8)
+                                        plt.title('Sentiment Analysis')
+                                        plt.ylabel('Number of Occurrences', fontsize=12)
+                                        plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
+                                        plt.xticks(rotation=45)
+                                        # annotation on chart
+                                        for p in plt.gca().patches:
+                                                    plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                        ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
+                                                        textcoords='offset points')
+                                        tweet_sent_plot=plt.show()
+                                        st.pyplot(tweet_sent_plot)
+
+                                        #Export to excel
+                                        towrite = io.BytesIO()
+                                        downloaded_file = df.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                                        towrite.seek(0)  # reset pointer
+                                        b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                        linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Twitter_handle.xlsx">Download Sentiment_predictions file</a>'
+                                        st.markdown(linko, unsafe_allow_html=True)
+                                    
+                                    except:
+                                        st.warning("Please enter a Twitter handle name")
+
+
+
+
 
 
                 
