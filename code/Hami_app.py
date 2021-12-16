@@ -1,5 +1,5 @@
-#Hide Rerun Menu options for users
-hide_menu="""
+# Hide Rerun Menu options for users
+hide_menu = """
 <style>
 #MainMenu {
   visibility:hidden;
@@ -18,115 +18,80 @@ footer:before{
 <style>
 """
 
-#PYNGROK
-from datetime import datetime
-from os import name
-from pickle import STOP
-import zipfile
-from pyngrok import ngrok
-import pickle
+# PYNGROK
 import joblib
-from streamlit.elements.utils import clean_text
-from streamlit.proto.PlotlyChart_pb2 import Figure
 
+# streamlit-tags
+from streamlit_tags import st_tags  # pip install streamlit_tags==1.0.6
 
-#streamlit-tags
-from streamlit_tags import st_tags #pip install streamlit_tags==1.0.6
-
-#lottie-Animation
+# lottie-Animation
 from streamlit_lottie import st_lottie
-import json
-from pandas.io.json import json_normalize
 import requests
 
-#Read Docx files
+# Read Docx files
 
-import docx2txt
 import collections
 
 try:
     collectionsAbc = collections.abc
 except AttributeError:
     collectionsAbc = collections
-import os
-#import xmltodict
 
-from typing import Optional
-import pandas as pd
-import numpy as np
 import nltk
-import re
 
-from streamlit.uploaded_file_manager import UploadedFile
-from traitlets.traitlets import default
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('vader_lexicon')
-from nltk.tokenize import word_tokenize
 from nltk.tokenize import sent_tokenize
 from nltk import word_tokenize, FreqDist
 from nltk.corpus import stopwords
-from transformers import pipeline
 
-#Importing spacy for Lemmatization
+# Importing spacy for Lemmatization
 import spacy
-from spacy import displacy
-from spacy.lemmatizer import Lemmatizer
-from spacy.lang.en.stop_words import STOP_WORDS
-nlp=spacy.load("en_core_web_sm")
-nlp.max_length = 14500000 # or even higher
+
+nlp = spacy.load("en_core_web_sm")
+nlp.max_length = 14500000  # or even higher
 from collections import Counter
 
-#sklearn
+# sklearn
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 
-import gensim
-import gensim.corpora as corpora
-from gensim.utils import simple_preprocess
-
-#import streamlit
+# import streamlit
 import streamlit as st
+
 st.set_page_config(layout="wide")
 import streamlit.components.v1 as components
-from streamlit_pandas_profiling import st_profile_report
 import io
 import os
 import base64
 
-#Tools required for plotting and wordcloud
+# Tools required for plotting and wordcloud
 import seaborn as sns
 from wordcloud import WordCloud
-import matplotlib.pyplot as plt
-import wordcloud
-from wordcloud.wordcloud import STOPWORDS
 
 ################################
-#Text matching
+# Text matching
 ################################
 from sentence_transformers import SentenceTransformer
 from scipy import spatial
 import json
-import re
 import torch
 from nltk import tokenize
 
 ###############################
 # Drill down Analysis
 ###############################
-import emoji
 import plotly.express as px
 import plotly.graph_objects as go
-from textblob import TextBlob   
-
 
 ###############################
-#Twitter API packages
+# Twitter API packages
 ###############################
-from tweepy import API 
+from tweepy import API
 from tweepy import Cursor
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
@@ -143,77 +108,76 @@ import re
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
-
 # Regex string for extract specific chartacters/ numbers
 regex_str = r'\d{5,8}'
 
-#Read Docx files
+# Read Docx files
 
-import docx2txt
 from PyPDF2 import PdfFileReader
 
 
 #################################
-#Lottie Animation
+# Lottie Animation
 #################################
 # Load the animation from local folder
 def load_lottiefile(filepath: str):
     with open(filepath, "r") as f:
         return json.load(f)
 
-#Load animation directly from website
+
+# Load animation directly from website
 def load_lottieurl(url: str):
     r = requests.get(url)
-    if r.status_code!=200:
+    if r.status_code != 200:
         return None
     return r.json
 
-proj_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ )))
-model_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'models'))
 
-#import model file
+proj_dir = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models'))
+
+# import model file
 
 model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
-#model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
-lottie_home=load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
+# model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
+lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
-lottie_home2=load_lottiefile(proj_dir + "/Hami_home.json")
+lottie_home2 = load_lottiefile(proj_dir + "/Hami_home.json")
 
 
 ##################################
-#PDF Reader
+# PDF Reader
 ##################################
 def readpdf(file):
     # Load PDF into pyPDF
     pdf = PdfFileReader(file)
     # Extract the first page
     count = PdfFileReader.numPages
-    all_page_text=""
+    all_page_text = ""
     for i in range(count):
         page = pdf.getPage(i)
         page_text = page.extractText()
-        all_page_text+=page_text
+        all_page_text += page_text
     return all_page_text
 
 
-#%matplotlib inline
+# %matplotlib inline
 
 import pyLDAvis
 import pyLDAvis.sklearn
 import pyLDAvis.gensim_models
+
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
-#pyLDAvis.enable_notebook()
+# pyLDAvis.enable_notebook()
 
 
 # Load Text Cleaning Pkgs
 import neattext.functions as nfx
 
 
-
-#@st.cache
-#Text Preprocessing
+# @st.cache
+# Text Preprocessing
 def text_preprocessing(text):
     # Remove '@name'
     text = re.sub(r'(@.*?)[\s]', ' ', text)
@@ -221,78 +185,81 @@ def text_preprocessing(text):
     text = re.sub(r'&amp;', '&', text)
     # Remove trailing whitespace
     text = re.sub(r'\s+', ' ', text)
-    #Remove emails
+    # Remove emails
     text = re.sub(r'(\W|^)[\w.\-]{0,25}@(yahoo|hotmail|gmail)\.com(\W|$)', ' ', text)
-    #Remove new line characters
+    # Remove new line characters
     text = re.sub(r'\s+', ' ', text).strip()
     # Remove URLs
     text = re.sub(r'http\S+', '', text)
     # Remove special characters, numbers, punctuations, etc.
     text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
     # Remove duplicate spaces
-    #text = re.sub(r'\s+', ' ', text)
+    # text = re.sub(r'\s+', ' ', text)
     # Remove the text present in between paranthases
-    #text = re.sub(r'\([^)]*\)', '', text)
+    # text = re.sub(r'\([^)]*\)', '', text)
     # Remove the text present in between braces
-    #text = re.sub(r'\{[^)]*\}', '', text)
+    # text = re.sub(r'\{[^)]*\}', '', text)
     # Remove the text present in between <>
-    #text = re.sub(r'<[^)]*>', '', text)
+    # text = re.sub(r'<[^)]*>', '', text)
     # Remove the text present in between []
-    #text = re.sub(r'\[[^)]*\]', '', text)
-    
+    # text = re.sub(r'\[[^)]*\]', '', text)
 
     return text
 
-#@st.cache
+
+# @st.cache
 def show_ents(doc):
-  if doc.ents():
-    for ent in doc.ents:
-      print(ent.text+'-'+ent.label_+'-'+str(spacy.explain(ent.label_)))
+    if doc.ents():
+        for ent in doc.ents:
+            print(ent.text + '-' + ent.label_ + '-' + str(spacy.explain(ent.label_)))
 
-  else:
-    print('No named entities found')
+    else:
+        print('No named entities found')
 
-#word cloud
-#Define tokenization function (word-level) 
+
+# word cloud
+# Define tokenization function (word-level)
 def sent_to_words(sentence):
     for word in sentence:
         yield (word_tokenize(str(word)))
 
 
-#Prepare Stopwords
+# Prepare Stopwords
 
-stopwords=stopwords.words('english')
-stopwords.extend(['list','listtype','listlisttype', 'nan', 'link', 'type', 'thing', 'Haha','OK',"'lol'",'nil',"nil'","https","www","think","like","text","lol","no'","like'","text","com","2021","covid","19","vaccine","'"])
+stopwords = stopwords.words('english')
+stopwords.extend(
+    ['list', 'listtype', 'listlisttype', 'nan', 'link', 'type', 'thing', 'Haha', 'OK', "'lol'", 'nil', "nil'", "https",
+     "www", "think", "like", "text", "lol", "no'", "like'", "text", "com", "2021", "covid", "19", "vaccine", "'"])
+
 
 #############################
 # Word count across timeline
 #############################
 
 
-
-
 #############################
-#TOPIC MODELLING
+# TOPIC MODELLING
 #############################
-#@st.cache
+# @st.cache
 # Define tokenization function (sentence-level) 
 def para_to_sents(paragraph):
     for sentence in paragraph:
         yield (sent_tokenize(str(sentence)))
 
-#@st.cache
+
+# @st.cache
 def lemmatization(
-    texts,
-    allowed_postags=[
-        "NOUN",
-        "PROPN",
-        "ADJ",
-        "VERB",
-        "ADV",
-        "NUM",
-        "GPE",
-        "DATE",
-    ],
+        texts,
+        allowed_postags=[
+            "NOUN",
+            "PROPN",
+            "ADJ",
+            "VERB",
+            "ADV",
+            "NUM",
+            "GPE",
+            "DATE",
+        ],
 ):
     """https://spacy.io/api/annotation"""
     texts_out = []
@@ -311,14 +278,15 @@ def lemmatization(
     lexeme.is_stop = True
 
 
-
 #############################
-#SENTIMENT PREDICTION
+# SENTIMENT PREDICTION
 #############################
 
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from sklearn.preprocessing import MinMaxScaler
+
 analyzer = SentimentIntensityAnalyzer()
+
 
 def sentiment_analyzer_scores(sentence) -> dict:
     """
@@ -337,15 +305,12 @@ def sentiment_analyzer_scores(sentence) -> dict:
     # print('neu:', score['neu'])
     # print('pos:', score['pos'])
     # print('compound:', score['compound'])
-    #return score['neg'], score['neu'], score['pos'], score['compound']
+    # return score['neg'], score['neu'], score['pos'], score['compound']
     return score['compound']
 
 
-
-
-
 ######################
-#SUMMARIZATION
+# SUMMARIZATION
 ######################
 
 # Sumy Summary Package
@@ -354,76 +319,87 @@ from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.lex_rank import LexRankSummarizer
 
 
-#Function for Sumy Summarization
+# Function for Sumy Summarization
 def sumy_summarizer(docx):
-	parser = PlaintextParser.from_string(docx,Tokenizer("english"))
-	lex_summarizer = LexRankSummarizer()
-	summary = lex_summarizer(parser.document,3)
-	summary_list = [str(sentence) for sentence in summary]
-	result = ' '.join(summary_list)
-	return result
+    parser = PlaintextParser.from_string(docx, Tokenizer("english"))
+    lex_summarizer = LexRankSummarizer()
+    summary = lex_summarizer(parser.document, 3)
+    summary_list = [str(sentence) for sentence in summary]
+    result = ' '.join(summary_list)
+    return result
 
-#T5 Summarization model
-#model.load_model("t5","/content/outputs/simplet5-epoch-4-train-loss-0.6352", use_gpu=True)
+
+# T5 Summarization model
+# model.load_model("t5","/content/outputs/simplet5-epoch-4-train-loss-0.6352", use_gpu=True)
 
 ############################################
-#sql database management to store passwords
+# sql database management to store passwords
 #############################################
 import hashlib
+
+
 def make_hashes(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
-def check_hashes(password,hashed_text):
-    if make_hashes(password)==hashed_text:
+
+def check_hashes(password, hashed_text):
+    if make_hashes(password) == hashed_text:
         return hashed_text
-    return False    
+    return False
+
 
 import sqlite3
-conn=sqlite3.connect('data.db')
-c=conn.cursor()
+
+conn = sqlite3.connect('data.db')
+c = conn.cursor()
+
 
 def create_usertable():
     c.execute('CREATE TABLE IF NOT EXISTS usertable(username TEXT,password TEXT,email TEXT)')
 
-def add_userdata(username,password):
-    c.execute('INSERT INTO usertable(username,password) VALUES (?,?)',(username,password))
+
+def add_userdata(username, password):
+    c.execute('INSERT INTO usertable(username,password) VALUES (?,?)', (username, password))
     conn.commit()
 
-def login_user(username,password):
-    c.execute('SELECT * from usertable WHERE username = ? AND password = ?',(username,password))
-    data=c.fetchall()
+
+def login_user(username, password):
+    c.execute('SELECT * from usertable WHERE username = ? AND password = ?', (username, password))
+    data = c.fetchall()
     return data
+
 
 def view_all_users():
     c.execute('SELECT * FROM usertable')
-    data=c.fetchall()
+    data = c.fetchall()
     return data
 
-#select columns
+
+# select columns
 def select_cols(self):
     if self.df is not None:
         try:
-            df_columns=list(self.df.columns)
-            label='Select Columns'
-            self.usecols=st.multiselect(label=label, default=df_columns,options=df_columns)
-            self.df=self.df[self.usecols]
+            df_columns = list(self.df.columns)
+            label = 'Select Columns'
+            self.usecols = st.multiselect(label=label, default=df_columns, options=df_columns)
+            self.df = self.df[self.usecols]
         except:
-            st.write('Column Select Error')      
+            st.write('Column Select Error')
 
 
 def main():
-    #Top Headers
+    # Top Headers
     st.sidebar.image(proj_dir + '/HAMI LOGO.png')
     st.sidebar.title("ANALYTIX ONLINE")
     st.sidebar.subheader("AI Solutions, Fine-Tuned to You")
 
-    #Hide Menu and edit Footer
-    st.markdown(hide_menu,unsafe_allow_html=True)
+    # Hide Menu and edit Footer
+    st.markdown(hide_menu, unsafe_allow_html=True)
 
-    #streamlit commands
+    # streamlit commands
     st.title("HAMI Data Analysis App")
-    menu=["Home","Login","Create Account"]
-    choice=st.sidebar.selectbox("Menu",menu)
+    menu = ["Home", "Login", "Create Account"]
+    choice = st.sidebar.selectbox("Menu", menu)
 
     if choice == "Home":
         st.subheader("Home")
@@ -439,51 +415,49 @@ def main():
     elif choice == "Login":
         st.subheader("Login Section")
 
-        username=st.sidebar.text_input("User Name")
-        #email=st.sidebar.text_input("Email")
-        password=st.sidebar.text_input("Password",type='password')
+        username = st.sidebar.text_input("User Name")
+        # email=st.sidebar.text_input("Email")
+        password = st.sidebar.text_input("Password", type='password')
         global stopwords
         if st.sidebar.checkbox("Login"):
             # if password=='admin':
             create_usertable()
-            result=login_user(username,password)
-            if result:    
+            result = login_user(username, password)
+            if result:
                 st.success("Logged In as {}".format(username))
 
-                #Header/Subheader
+                # Header/Subheader
                 st.header("Analysis")
 
-                #Uploader
-                
-                dff=st.file_uploader("Choose a file to Upload",
-                    type=["xlsx","csv","json","docx","xls"])
+                # Uploader
 
-                
+                dff = st.file_uploader("Choose a file to Upload",
+                                       type=["xlsx", "csv", "json", "docx", "xls"])
 
-                global data #To make it available outside the if statement
+                global data  # To make it available outside the if statement
 
                 if dff is not None:
                     try:
-                        #un-comment for accessing by sheet names
-                        #sheets=["FG1 HQ Exec","FG2","FG3","FG4","FG5","FG6 Ops Manager"]                            
-                        data=pd.read_excel(dff)#,sheet_name=sheet_name)
-                        col_select=st.selectbox(
-                        label="Select the column for analysis",
-                        options=data.columns
-                        )                             
-                        #sheets=get_sheet_details(data)
-                        #sheet_name=st.selectbox('select the sheet:',options=sheets)
+                        # un-comment for accessing by sheet names
+                        # sheets=["FG1 HQ Exec","FG2","FG3","FG4","FG5","FG6 Ops Manager"]
+                        data = pd.read_excel(dff)  # ,sheet_name=sheet_name)
+                        col_select = st.selectbox(
+                            label="Select the column for analysis",
+                            options=data.columns
+                        )
+                        # sheets=get_sheet_details(data)
+                        # sheet_name=st.selectbox('select the sheet:',options=sheets)
 
-                        #Remove empty rows
-                        #data=data.dropna()
+                        # Remove empty rows
+                        # data=data.dropna()
                         st.dataframe(data)
 
-                        #DATA_COLUMN
+                        # DATA_COLUMN
                         data[col_select] = data[col_select].astype(str)
-                        
-                        #data['clean_text']=data.loc[data[col_select].str.len()>2]
-                        remove_list=['list','nan','joined','forward']
-                        #data=data.loc[~data['clean_text'].str.lower().str.contains('|'.join(remove_list),na=False)]
+
+                        # data['clean_text']=data.loc[data[col_select].str.len()>2]
+                        remove_list = ['list', 'nan', 'joined', 'forward']
+                        # data=data.loc[~data['clean_text'].str.lower().str.contains('|'.join(remove_list),na=False)]
                         data['clean_text'] = data[col_select].astype(str)
                         # User handles
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_userhandles)
@@ -494,12 +468,13 @@ def main():
                         # Remove custom Stopwords
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_stopwords)
                         # Exclude stopwords with Python's list comprehension and pandas.DataFrame.apply.
-                        data['clean_text'] = data['clean_text'].apply(lambda x: ' '.join([word for word in x.split() if word not in (stopwords)]))
-                        
-                        #Remove URLs
+                        data['clean_text'] = data['clean_text'].apply(
+                            lambda x: ' '.join([word for word in x.split() if word not in (stopwords)]))
+
+                        # Remove URLs
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)
 
-                        data['clean_text']=data['clean_text'].apply(lambda text: text_preprocessing(text))
+                        data['clean_text'] = data['clean_text'].apply(lambda text: text_preprocessing(text))
 
                         filtered_data = data['clean_text']
                         topic_corpus = filtered_data.astype(str)
@@ -508,26 +483,23 @@ def main():
 
 
 
-                            
-                    except ValueError as error:
-                        data=pd.read_csv(dff)
-                        col_select=st.selectbox(
-                        label="Select the column for analysis",
-                        options=data.columns
-                        )                        
 
-                        #data=data.dropna()
+                    except ValueError as error:
+                        data = pd.read_csv(dff)
+                        col_select = st.selectbox(
+                            label="Select the column for analysis",
+                            options=data.columns
+                        )
+
+                        # data=data.dropna()
                         st.dataframe(data)
 
-
-
-
-                        #DATA_COLUMN
+                        # DATA_COLUMN
                         data[col_select] = data[col_select].astype(str)
 
-                        #data['clean_text']=data.loc[data[col_select].str.len()>2]
-                        remove_list=['list','nan','joined','forward']
-                        #data=data.loc[~data['clean_text'].str.lower().str.contains('|'.join(remove_list),na=False)]
+                        # data['clean_text']=data.loc[data[col_select].str.len()>2]
+                        remove_list = ['list', 'nan', 'joined', 'forward']
+                        # data=data.loc[~data['clean_text'].str.lower().str.contains('|'.join(remove_list),na=False)]
                         data['clean_text'] = data[col_select].astype(str)
                         # User handles
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_userhandles)
@@ -535,100 +507,86 @@ def main():
                         # User html_tags
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_html_tags)
 
-                        #Stopwords
+                        # Stopwords
                         data['clean_text'] = data['clean_text'].apply(nfx.remove_stopwords)
                         # Exclude stopwords with Python's list comprehension and pandas.DataFrame.apply.
-                        #data['clean_text'] = data['clean_text'].apply(lambda x: ' '.join([word for word in x.split() if word not in (stopwords)]))
+                        # data['clean_text'] = data['clean_text'].apply(lambda x: ' '.join([word for word in x.split() if word not in (stopwords)]))
 
                         # Remove URLs
-                        data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)   
+                        data['clean_text'] = data['clean_text'].apply(nfx.remove_urls)
 
-                        #Text Preprocessing
-                        data['clean_text']=data['clean_text'].apply(lambda text: text_preprocessing(text))
+                        # Text Preprocessing
+                        data['clean_text'] = data['clean_text'].apply(lambda text: text_preprocessing(text))
 
                         filtered_data = data['clean_text']
                         topic_corpus = filtered_data.astype(str)
                         topic_text = topic_corpus.values.tolist()
                         topic_corpus_words = list(para_to_sents(topic_text))
-               
-                                               
-                    
 
-                    #File details
-                    file_details = {"Filename":dff.name,
-                    "FileType":dff.type,"FileSize":dff.size}
+                    # File details
+                    file_details = {"Filename": dff.name,
+                                    "FileType": dff.type, "FileSize": dff.size}
                     st.write(file_details)
-                
+
                 else:
                     st.warning("you need to upload a file to start the analysis")
 
-
-
-
-                
                 if st.checkbox("Textual Data"):
 
-
-
-                    
-                        ################################################
-                        #Streamlit Deck
-                        ################################################
-                    #Submit button
+                    ################################################
+                    # Streamlit Deck
+                    ################################################
+                    # Submit button
                     with st.form(key="form1"):
-                        #SelectBox
-                        options=st.radio("Select the task",["Topic Modelling","Entity analysis","Sentiment Analysis","Emotion Analysis","Text Summarization",
-                        "Time Series Analysis","Text Similarity","Twitter Sentiment Analysis"])
-                        submit=st.form_submit_button(label="Submit")
+                        # SelectBox
+                        options = st.radio("Select the task",
+                                           ["Topic Modelling", "Entity analysis", "Sentiment Analysis",
+                                            "Emotion Analysis", "Text Summarization",
+                                            "Time Series Analysis", "Text Similarity", "Twitter Sentiment Analysis"])
+                        submit = st.form_submit_button(label="Submit")
 
-                        
-                        
-                        
-                        
                         #########################
-                        #TOPIC MODELLING
+                        # TOPIC MODELLING
                         #########################
 
+                        keywords = st_tags('Enter custom Stopwords:', 'Press enter to add more', ['hello'])
 
-                        keywords=st_tags('Enter custom Stopwords:','Press enter to add more',['hello'])
-                        
                         stopwords.extend(keywords)
 
-                                
-
                         if options == "Topic Modelling" and submit:
-                            #Assignments
-                            col1,col2,col3=st.columns(3)   
+                            # Assignments
+                            col1, col2, col3 = st.columns(3)
                             with col1:
-                                minimum_df=st.slider('slide to set min_df',min_value=1,max_value=8,help="Minimum required occurences of a word")
+                                minimum_df = st.slider('slide to set min_df', min_value=1, max_value=8,
+                                                       help="Minimum required occurences of a word")
                             with col2:
-                                collect_numbers = lambda x : [int(i) for i in re.split("[^0-9]", x) if i != ""]
-                                number_of_topics=st.text_input('Enter number of topics(minimum is 2)',"2")
-                                ticks=(collect_numbers(number_of_topics))
+                                collect_numbers = lambda x: [int(i) for i in re.split("[^0-9]", x) if i != ""]
+                                number_of_topics = st.text_input('Enter number of topics(minimum is 2)', "2")
+                                ticks = (collect_numbers(number_of_topics))
                             with col3:
-                                n_grams=st.slider('select a range of n-grams',1,5,(1,2),help="Assign the number ngram for keywords/phrases i.e.Bi-gram, tri-gram,...n-gram")
+                                n_grams = st.slider('select a range of n-grams', 1, 5, (1, 2),
+                                                    help="Assign the number ngram for keywords/phrases i.e.Bi-gram, tri-gram,...n-gram")
 
-                        #elif options == "Topic Modelling" and submit:       
-                            
+                            # elif options == "Topic Modelling" and submit:
+
                             topic_corpus_lemmatized = lemmatization(topic_corpus_words,
-                                allowed_postags=[
-                                    "NOUN",
-                                    "PROPN",
-                                    "ADJ",
-                                    "VERB",
-                                    "ADV",
-                                    "NUM",
-                                    "ORG",
-                                    "DATE",
-                                ],
-                            )
-
+                                                                    allowed_postags=[
+                                                                        "NOUN",
+                                                                        "PROPN",
+                                                                        "ADJ",
+                                                                        "VERB",
+                                                                        "ADV",
+                                                                        "NUM",
+                                                                        "ORG",
+                                                                        "DATE",
+                                                                    ],
+                                                                    )
 
                             topic_vectorizer = CountVectorizer(
-                            analyzer="word",
-                            min_df=minimum_df,  
-                            stop_words=stopwords,
-                            ngram_range=n_grams
+                                analyzer="word",
+                                min_df=minimum_df,
+                                stop_words=stopwords,
+                                ngram_range=n_grams
                             )
 
                             topic_corpus_vectorized = topic_vectorizer.fit_transform(topic_corpus_lemmatized)
@@ -639,11 +597,11 @@ def main():
 
                             # Initiate the Model
                             topic_lda = LatentDirichletAllocation(
-                                max_iter=100, #default 10
+                                max_iter=100,  # default 10
                                 learning_method="batch",
                                 batch_size=32,
                                 learning_decay=0.7,
-                                random_state=42,)
+                                random_state=42, )
 
                             # Init Grid Search Class
                             topic_model = GridSearchCV(topic_lda, cv=5, param_grid=search_params, n_jobs=-1, verbose=1)
@@ -654,12 +612,13 @@ def main():
                             # LDA Model
                             topic_best_lda_model = topic_model.best_estimator_
 
-                            #pyLDAvis
-                            topic_panel=pyLDAvis.sklearn.prepare(
-                                topic_best_lda_model, topic_corpus_vectorized, topic_vectorizer, mds="tsne", R=50, sort_topics=False)
+                            # pyLDAvis
+                            topic_panel = pyLDAvis.sklearn.prepare(
+                                topic_best_lda_model, topic_corpus_vectorized, topic_vectorizer, mds="tsne", R=50,
+                                sort_topics=False)
                             pyLDAvis.save_html(topic_panel, proj_dir + '/topic_panel.html')
-                            
-                            #Creating new df with keywords count
+
+                            # Creating new df with keywords count
 
                             topic_keywords = topic_panel.topic_info[["Term", "Freq", "Total", "Category"]]
 
@@ -676,16 +635,15 @@ def main():
                                 lambda x: str(x).replace("Default", "Overall Transcript")
                             )
 
-
-                            #Creating new dataframe with dominant topics and probability scores
+                            # Creating new dataframe with dominant topics and probability scores
 
                             topic_lda_output = topic_best_lda_model.transform(topic_corpus_vectorized)
 
                             # column names
-                            Topicnames = ["Topic" + str(i+1) for i in range(topic_best_lda_model.n_components)]
+                            Topicnames = ["Topic" + str(i + 1) for i in range(topic_best_lda_model.n_components)]
 
                             # index names
-                            Docnames = ["Doc" + str(i+1) for i in range(len(topic_corpus))]
+                            Docnames = ["Doc" + str(i + 1) for i in range(len(topic_corpus))]
 
                             # Make the pandas dataframe
                             Topics = pd.DataFrame(
@@ -694,11 +652,11 @@ def main():
 
                             # Get dominant topic for each document
                             Dominant_topics = np.argmax(Topics.values, axis=1)
-                            Topics["DOMINANT_TOPIC"] = Dominant_topics+1
+                            Topics["DOMINANT_TOPIC"] = Dominant_topics + 1
 
                             topic_lemma_text = pd.DataFrame(topic_corpus_lemmatized, columns=["Lem_Text"])
 
-                            #Merging all 3 dataframes
+                            # Merging all 3 dataframes
 
                             Topics.reset_index(inplace=True)
 
@@ -706,55 +664,51 @@ def main():
                                 Topics, left_index=True, right_index=True)
                             topic_full_results.drop("index", axis=1, inplace=True)
 
-                            #exporting to excel
+                            # exporting to excel
                             topic_full_results.to_excel(proj_dir + "/Topics.xlsx", index=False)
                             topic_keywords.to_excel(proj_dir + "/Keywords.xlsx", index=False)
 
-                            #importing for calling with st.dataframe()
-                            topic_full_results=pd.read_excel(proj_dir + "/Topics.xlsx")
-                            topic_keywords=pd.read_excel(proj_dir + "/Keywords.xlsx")
+                            # importing for calling with st.dataframe()
+                            topic_full_results = pd.read_excel(proj_dir + "/Topics.xlsx")
+                            topic_keywords = pd.read_excel(proj_dir + "/Keywords.xlsx")
 
-
-                            #st.plotly_chart(topic_panel)
+                            # st.plotly_chart(topic_panel)
                             html_string = pyLDAvis.prepared_data_to_html(topic_panel)
                             from streamlit import components
                             components.v1.html(html_string, width=1300, height=900, scrolling=False)
-                            
-                            col1,col2=st.columns(2)
-                            
-                            with col1:                                                
+
+                            col1, col2 = st.columns(2)
+
+                            with col1:
                                 st.write("**Dominant Topic Output**")
-                                fr=pd.read_excel(proj_dir + '/Topics.xlsx')
+                                fr = pd.read_excel(proj_dir + '/Topics.xlsx')
                                 st.dataframe(fr)
-                                #Export fr to excel
+                                # Export fr to excel
                                 towrite = io.BytesIO()
                                 downloaded_file = fr.to_excel(towrite, encoding='utf-8', index=False, header=True)
                                 towrite.seek(0)  # reset pointer
                                 b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Dominant_Topic.xlsx">Download Dominant_Topic file</a>'
+                                linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Dominant_Topic.xlsx">Download Dominant_Topic file</a>'
                                 st.markdown(linko, unsafe_allow_html=True)
-                                
+
                             with col2:
                                 st.write("**Keyword List**")
-                                kw=pd.read_excel(proj_dir + '/Keywords.xlsx')
+                                kw = pd.read_excel(proj_dir + '/Keywords.xlsx')
                                 st.dataframe(kw)
-                                #Export kw to excel
+                                # Export kw to excel
                                 towrite = io.BytesIO()
                                 downloaded_file = kw.to_excel(towrite, encoding='utf-8', index=False, header=True)
                                 towrite.seek(0)  # reset pointer
                                 b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Keyword_list.xlsx">Download Keyword_list file</a>'
+                                linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Keyword_list.xlsx">Download Keyword_list file</a>'
                                 st.markdown(linko, unsafe_allow_html=True)
 
-
-
                             ####################################################
-                            #TEXT SEARCHING
+                            # TEXT SEARCHING
                             ####################################################
 
 
                         elif options == "Text Similarity" and submit:
-
 
                             ####################################################
                             # Specify a number form 1 ~ 10, higher is more strict
@@ -763,10 +717,8 @@ def main():
                             st.header("Enter a sentence or keyword to search for")
                             TargetSentence = st.text_input('Enter sentence to be searched')
                             # Confirmation key words in agent's sentences
-                            TargetKeyWords = st_tags('Enter target keywords:','Press enter to add',['vaccination'])
+                            TargetKeyWords = st_tags('Enter target keywords:', 'Press enter to add', ['vaccination'])
                             # Confirmation response key words in customer's sentences       
-
-
 
                             ####################################################
                             if TargetSentence is not None or TargetKeyWords != '':
@@ -776,22 +728,23 @@ def main():
                                     # Sentence Similarity
                                     ####################################################
                                     def _check_word_in_sentence(words: list, sentence: str) -> bool:
-                                    # Tokenize the sentence into tokens
+                                        # Tokenize the sentence into tokens
                                         tokens = [word.lower() for word in tokenize.word_tokenize(sentence)]
                                         for word in words:
                                             if word in tokens:
                                                 return True
-                                        return False  
+                                        return False
 
                                     sentence_list = []
                                     for index, row in data.iterrows():
                                         sentences = [sent for sent in nltk.sent_tokenize(row[col_select])]
                                         for sentence in sentences:
                                             sentence_list.append([index, sentence])
-                                    sentence_df = pd.DataFrame(sentence_list, columns=['index','text'])
+                                    sentence_df = pd.DataFrame(sentence_list, columns=['index', 'text'])
 
                                     # Get the sentence embedding
-                                    sentence_df['embedding'] = sentence_df['text'].apply(lambda text: model.encode(text))
+                                    sentence_df['embedding'] = sentence_df['text'].apply(
+                                        lambda text: model.encode(text))
 
                                     # Get the sentence embedding for target sentences
                                     confirmation_sentence = TargetSentence
@@ -800,261 +753,274 @@ def main():
 
                                     # Calculate the similarity
                                     sentence_df['confirmation_sim'] = sentence_df['embedding'].apply(
-                                    lambda x: 1 - spatial.distance.cosine(x, confirmation_embedding))
+                                        lambda x: 1 - spatial.distance.cosine(x, confirmation_embedding))
 
                                     # Calculate the rank of the similarity
-                                    sentence_df['confirmation_order'] = sentence_df['confirmation_sim'].rank(method='first', ascending=False)                            
-                    
+                                    sentence_df['confirmation_order'] = sentence_df['confirmation_sim'].rank(
+                                        method='first', ascending=False)
+
                                     temp_dict = {}
-                                    
+
                                     for index, row in sentence_df.iterrows():
                                         if (row['confirmation_order'] <= 11 - StrictLevel) and \
                                                 (row['confirmation_sim'] > 0.35) or \
                                                 _check_word_in_sentence(TargetSentence, row['text']):
-                                            st.write('Matched rows with Sentence:',int(row['index']), row['text'])
+                                            st.write('Matched rows with Sentence:', int(row['index']), row['text'])
                                         temp_dict = {
                                             'index': int(row['index']),
                                             'text': row['text']
                                         }
-                                    #for keyword in TargetKeyWords:
+                                    # for keyword in TargetKeyWords:
                                     for index, row in sentence_df.iterrows():
                                         if (_check_word_in_sentence(TargetKeyWords, row['text'])):
-                                            st.write('Matched rows with keywords:',int(row['index']), row['text'])
+                                            st.write('Matched rows with keywords:', int(row['index']), row['text'])
 
                                     st.write("**Text Similarity results**")
                                     df = data
-                                    #df = df.dropna()
-                                    
+                                    # df = df.dropna()
+
                                     st.write('Spreadsheet with similarity score for each row')
-                                    st.dataframe(sentence_df)#,sorted='confirmation_sim')
+                                    st.dataframe(sentence_df)  # ,sorted='confirmation_sim')
 
                                     # Export to excel
                                     towrite = io.BytesIO()
-                                    downloaded_file = sentence_df.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                                    downloaded_file = sentence_df.to_excel(towrite, encoding='utf-8', index=False,
+                                                                           header=True)
                                     towrite.seek(0)  # reset pointer
                                     b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                    linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="similarity_score.xlsx">Download Similarity score file</a>'
-                                    st.markdown(linko, unsafe_allow_html=True)                                    
-                            
-                                except: 
+                                    linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="similarity_score.xlsx">Download Similarity score file</a>'
+                                    st.markdown(linko, unsafe_allow_html=True)
+
+                                except:
                                     st.warning("Please enter a sentence and keyword for finding a match")
-                                    
+
 
 
 
                         elif options == "Entity analysis" and submit:
 
-
-
-
                             ####################################################
-                            #ENTITY RECOGNITION : APPLYING the NER FROM SPACY
+                            # ENTITY RECOGNITION : APPLYING the NER FROM SPACY
                             ####################################################
                             st.write("**Select the Entity from dropdown to see results**")
 
-                            #data['NER']=data['clean_text'].apply(lambda x: nlp(x))
+                            # data['NER']=data['clean_text'].apply(lambda x: nlp(x))
 
-                            tokens=nlp(''.join(str(data.clean_text.tolist())))
-                            items=[x.text for x in tokens.ents]
-                            #Counter(items).most_common(20)
+                            tokens = nlp(''.join(str(data.clean_text.tolist())))
+                            items = [x.text for x in tokens.ents]
+                            # Counter(items).most_common(20)
 
-
-                            select_plot=st.selectbox("Entity types identified",("Person : People including fictional"
-                            ,"NORP : Nationalities or religious or political groups"
-                            ,"ORG : Companies, agencies, institutions."
-                            ,"GPE : Countries, cities, states"
-                            ,"PRODUCT : Objects, vehicles, foods"
-                            ,"EVENT : Named hurricanes, battles, wars, sports events"
-                            ,"LAW : Named documents made into laws"
-                            ,"WORK_OF_ART: Titles of books, songs"
-                            ))
+                            select_plot = st.selectbox("Entity types identified", ("Person : People including fictional"
+                                                                                   ,
+                                                                                   "NORP : Nationalities or religious or political groups"
+                                                                                   ,
+                                                                                   "ORG : Companies, agencies, institutions."
+                                                                                   , "GPE : Countries, cities, states"
+                                                                                   ,
+                                                                                   "PRODUCT : Objects, vehicles, foods"
+                                                                                   ,
+                                                                                   "EVENT : Named hurricanes, battles, wars, sports events"
+                                                                                   ,
+                                                                                   "LAW : Named documents made into laws"
+                                                                                   ,
+                                                                                   "WORK_OF_ART: Titles of books, songs"
+                                                                                   ))
 
                             if select_plot == "Person : People including fictional":
-                                
-                                #Names of persons
+
+                                # Names of persons
 
                                 person_list = []
                                 for ent in tokens.ents:
                                     if ent.label_ == 'PERSON' and ent.text not in stopwords:
                                         person_list.append(ent.text)
                                 person_counts = Counter(person_list).most_common(20)
-                                df_person = pd.DataFrame(person_counts, columns =['text', 'count'])
-                            
-                                st.pyplot(df_person.plot.barh(x='text', y='count', title="Names of persons", color="#80852c", figsize=(10,8)).invert_yaxis())
+                                df_person = pd.DataFrame(person_counts, columns=['text', 'count'])
+
+                                st.pyplot(
+                                    df_person.plot.barh(x='text', y='count', title="Names of persons", color="#80852c",
+                                                        figsize=(10, 8)).invert_yaxis())
 
                             elif select_plot == "NORP : Nationalities or religious or political groups":
-                                
-                                #Nationalities, religious and political groups
+
+                                # Nationalities, religious and political groups
 
                                 norp_list = []
                                 for ent in tokens.ents:
                                     if ent.label_ == 'NORP' and ent.text not in stopwords:
                                         norp_list.append(ent.text)
                                 norp_counts = Counter(norp_list).most_common(20)
-                                df_norp = pd.DataFrame(norp_counts, columns =['text', 'count'])                                
-                            
-                                st.pyplot(df_norp.plot.barh(x='text', y='count',color="#e0c295", title="Nationalities, religious and political groups", figsize=(10,8)).invert_yaxis())
-                            
+                                df_norp = pd.DataFrame(norp_counts, columns=['text', 'count'])
+
+                                st.pyplot(df_norp.plot.barh(x='text', y='count', color="#e0c295",
+                                                            title="Nationalities, religious and political groups",
+                                                            figsize=(10, 8)).invert_yaxis())
+
                             elif select_plot == "ORG : Companies, agencies, institutions.":
 
-                                #Companies Agencies institutions
+                                # Companies Agencies institutions
 
                                 org_list = []
                                 for ent in tokens.ents:
                                     if ent.label_ == 'ORG' and ent.text not in stopwords:
                                         org_list.append(ent.text)
-                                        
-                                org_counts = Counter(org_list).most_common(20)
-                                df_org = pd.DataFrame(org_counts, columns =['text', 'count'])
 
-                                st.pyplot(df_org.plot.barh(x='text', y='count',color="#cdbb69",title="Companies Agencies institutions", figsize=(5,4)).invert_yaxis())
+                                org_counts = Counter(org_list).most_common(20)
+                                df_org = pd.DataFrame(org_counts, columns=['text', 'count'])
+
+                                st.pyplot(df_org.plot.barh(x='text', y='count', color="#cdbb69",
+                                                           title="Companies Agencies institutions",
+                                                           figsize=(5, 4)).invert_yaxis())
 
                             elif select_plot == "PRODUCT : Objects, vehicles, foods":
 
-                                #Objects,vehicles,foods(not services)
+                                # Objects,vehicles,foods(not services)
 
                                 prod_list = []
                                 for ent in tokens.ents:
                                     if ent.label_ == 'PRODUCT' and ent.text not in stopwords:
                                         prod_list.append(ent.text)
-                                        
-                                prod_counts = Counter(prod_list).most_common(20)
-                                df_prod = pd.DataFrame(prod_counts, columns =['text', 'count'])
 
-                                st.pyplot(df_prod.plot.barh(x='text', y='count',color="#eca349",title="Objects,vehicles,foods", figsize=(5,4)).invert_yaxis())
+                                prod_counts = Counter(prod_list).most_common(20)
+                                df_prod = pd.DataFrame(prod_counts, columns=['text', 'count'])
+
+                                st.pyplot(df_prod.plot.barh(x='text', y='count', color="#eca349",
+                                                            title="Objects,vehicles,foods",
+                                                            figsize=(5, 4)).invert_yaxis())
 
                             elif select_plot == "EVENT : Named hurricanes, battles, wars, sports events":
 
-                                #EVENT: Named hurricanes, battles, wars, sports events,
+                                # EVENT: Named hurricanes, battles, wars, sports events,
                                 event_list = []
                                 for ent in tokens.ents:
                                     if ent.label_ == 'EVENT' and ent.text not in stopwords:
                                         event_list.append(ent.text)
 
                                 event_counts = Counter(event_list).most_common(20)
-                                df_event = pd.DataFrame(event_counts, columns=['text','count'])
+                                df_event = pd.DataFrame(event_counts, columns=['text', 'count'])
 
-                                st.pyplot(df_event.plot.barh(x='text',y='count',color="#e08a31", title="Named hurricanes, battles, wars, sports events",figsize=(5,4)).invert_yaxis())
-                            
+                                st.pyplot(df_event.plot.barh(x='text', y='count', color="#e08a31",
+                                                             title="Named hurricanes, battles, wars, sports events",
+                                                             figsize=(5, 4)).invert_yaxis())
+
                             elif select_plot == "LAW : Named documents made into laws":
 
-                                #LAW: Named documents made into laws
-                                law_list= []
+                                # LAW: Named documents made into laws
+                                law_list = []
                                 for ent in tokens.ents:
                                     if ent.label_ == 'LAW' and ent.text not in stopwords:
                                         law_list.append(ent.text)
-                                
-                                law_counts = Counter(law_list).most_common(20)
-                                df_law = pd.DataFrame(law_counts,columns= ['text','count'])
 
-                                st.pyplot(df_law.plot.barh(x='text',y='count',color="#80852c", title="Named documents made into laws",figsize=(5,4)).invert_yaxis())
+                                law_counts = Counter(law_list).most_common(20)
+                                df_law = pd.DataFrame(law_counts, columns=['text', 'count'])
+
+                                st.pyplot(df_law.plot.barh(x='text', y='count', color="#80852c",
+                                                           title="Named documents made into laws",
+                                                           figsize=(5, 4)).invert_yaxis())
 
                             elif select_plot == "WORK_OF_ART: Titles of books, songs":
-                                
-                                #WORK_OF_ART: Titles of books, songs
-                                workofart_list= []
+
+                                # WORK_OF_ART: Titles of books, songs
+                                workofart_list = []
                                 for ent in tokens.ents:
                                     if ent.label_ == 'WORK_OF_ART' and ent.text not in stopwords:
                                         workofart_list.append(ent.text)
-                                
+
                                 workofart_counts = Counter(workofart_list).most_common(20)
-                                df_workofart = pd.DataFrame(workofart_counts,columns= ['text','count'])
+                                df_workofart = pd.DataFrame(workofart_counts, columns=['text', 'count'])
 
-                                st.pyplot(df_workofart.plot.barh(x='text',y='count',color="#e0c295", title="Named documents made into laws",figsize=(5,4)).invert_yaxis())
+                                st.pyplot(df_workofart.plot.barh(x='text', y='count', color="#e0c295",
+                                                                 title="Named documents made into laws",
+                                                                 figsize=(5, 4)).invert_yaxis())
 
 
-                            
+
                             elif select_plot == "GPE : Countries, cities, states":
 
-                                #Countres, cities and states
+                                # Countres, cities and states
 
                                 gpe_list = []
                                 for ent in tokens.ents:
                                     if ent.label_ == 'GPE' and ent.text not in stopwords:
                                         gpe_list.append(ent.text)
-                                        
-                                gpe_counts = Counter(gpe_list).most_common(20)
-                                df_gpe = pd.DataFrame(gpe_counts, columns =['text', 'count'])
 
-                                st.pyplot(df_gpe.plot.barh(x='text', y='count',color="#e08a31" ,title="Countres, cities and states", figsize=(10,8)).invert_yaxis())
+                                gpe_counts = Counter(gpe_list).most_common(20)
+                                df_gpe = pd.DataFrame(gpe_counts, columns=['text', 'count'])
+
+                                st.pyplot(df_gpe.plot.barh(x='text', y='count', color="#e08a31",
+                                                           title="Countres, cities and states",
+                                                           figsize=(10, 8)).invert_yaxis())
 
                             else:
                                 st.stop()
 
-                            
-                                 
-                                                       
-                                                        
-                            
                             #########################
-                            #Text Summarization
+                            # Text Summarization
                             #########################    
-                            
+
                         elif options == "Text Summarization" and submit:
 
-
-                            #Lexrank
+                            # Lexrank
 
                             ##Uncomment if wanted to run the summarization row wise
-                            #summary=data['clean_text'].apply(lambda x: sumy_summarizer(x))
-                            #DATA_COLUMN
+                            # summary=data['clean_text'].apply(lambda x: sumy_summarizer(x))
+                            # DATA_COLUMN
                             data[col_select] = data[col_select].astype(str)
-                            data['clean_text']=data[col_select].apply(lambda text: text_preprocessing(text))      
+                            data['clean_text'] = data[col_select].apply(lambda text: text_preprocessing(text))
                             filtered_data = data[col_select]
                             topic_text = filtered_data.astype(str)
-                            topic_corpus = topic_text.values.tolist()                            
-                            sumy=sumy_summarizer(topic_corpus)
+                            topic_corpus = topic_text.values.tolist()
+                            sumy = sumy_summarizer(topic_corpus)
                             st.write('Lex-Rank Summarizer')
                             st.success(sumy)
-                            
-                            #Luhn
+
+                            # Luhn
                             from sumy.summarizers.luhn import LuhnSummarizer
                             summarizer_luhn = LuhnSummarizer()
-                            parser = PlaintextParser.from_string(topic_corpus,Tokenizer("english"))
-                            summary_1 =summarizer_luhn(parser.document,2)
-                            st.write('LUHN Summarizer',help="heurestic method")                            
+                            parser = PlaintextParser.from_string(topic_corpus, Tokenizer("english"))
+                            summary_1 = summarizer_luhn(parser.document, 2)
+                            st.write('LUHN Summarizer', help="heurestic method")
                             for sentence in summary_1:
                                 st.success(sentence)
 
-                            #LSA
+                            # LSA
                             from sumy.summarizers.lsa import LsaSummarizer
                             summarizer_lsa = LsaSummarizer()
-                            summary_2 =summarizer_lsa(parser.document,2)
-                            st.write('LSA Summarizer',help="Latent Semantic Analysis")                             
+                            summary_2 = summarizer_lsa(parser.document, 2)
+                            st.write('LSA Summarizer', help="Latent Semantic Analysis")
                             for sentence in summary_2:
                                 st.success(sentence)
 
-                            #Using stopwords
+                            # Using stopwords
                             ## Alternative Method using stopwords
                             from sumy.nlp.stemmers import Stemmer
                             from sumy.utils import get_stop_words
                             summarizer_lsa2 = LsaSummarizer()
                             summarizer_lsa2 = LsaSummarizer(Stemmer("english"))
                             summarizer_lsa2.stop_words = get_stop_words("english")
-                            st.write('LSA2 Summarizer',help="LSA using customized stopwords")                             
-                            for sentence in summarizer_lsa2(parser.document,2):
+                            st.write('LSA2 Summarizer', help="LSA using customized stopwords")
+                            for sentence in summarizer_lsa2(parser.document, 2):
                                 st.success(sentence)
 
-                           
-                            
+
+
 
                         elif options == "Time Series Analysis" and submit:
-                            
- 
-                            
-                            #Create a function to get the subjectivity of the text
-                            #def sentiment_analysis(data):
+
+                            # Create a function to get the subjectivity of the text
+                            # def sentiment_analysis(data):
                             def getSubjectivity(text):
-                                return TextBlob(text).sentiment.subjectivity                            
+                                return TextBlob(text).sentiment.subjectivity
 
+                                # Create a function to get the polarity
 
-                            #Create a function to get the polarity
                             def getPolarity(text):
                                 return TextBlob(text).sentiment.polarity
-                            
-                            #Create two new columns ‘Subjectivity’ & ‘Polarity’
+
+                            # Create two new columns ‘Subjectivity’ & ‘Polarity’
                             data['TextBlob_Subjectivity'] = data['clean_text'].apply(getSubjectivity)
                             data['TextBlob_Polarity'] = data['clean_text'].apply(getPolarity)
+
                             def getAnalysis(score):
                                 if score < 0:
                                     return 'Negative'
@@ -1062,58 +1028,61 @@ def main():
                                     return 'Neutral'
                                 else:
                                     return 'Positive'
+
                             data['TextBlob_Analysis'] = data['TextBlob_Polarity'].apply(getAnalysis)
 
-                            #return data
-
+                            # return data
 
                             # Layered Time Series:
                             # select date column by Time series
-                            date_cols=data.select_dtypes(include=['datetime']).columns.tolist()
+                            date_cols = data.select_dtypes(include=['datetime']).columns.tolist()
 
-                            col1,col2,col3=st.columns(3)
+                            col1, col2, col3 = st.columns(3)
                             with col1:
-                                date_col_select=st.selectbox(label="Select the column with date-time",options =data.columns,index=1)
-                            
+                                date_col_select = st.selectbox(label="Select the column with date-time",
+                                                               options=data.columns, index=1)
+
                             with col2:
-                                from_col=st.selectbox(label="Select the column with user names",options =data.columns,index=4)
+                                from_col = st.selectbox(label="Select the column with user names", options=data.columns,
+                                                        index=4)
 
                             with col3:
                                 people = data[from_col].unique()
 
-                                person=st.selectbox(label="Select the people",options =people,index=0)
+                                person = st.selectbox(label="Select the people", options=people, index=0)
                             st.success("There were {} messages from the selected input.".format(len(people)))
 
                             if date_col_select and from_col is not None:
-                         
+
                                 data["datetime"] = pd.to_datetime(data[date_col_select])
                                 data.index = data['datetime']
                                 date_df = data.resample("D").sum()
                                 date_df.reset_index(inplace=True)
 
-                                date_df.groupby("datetime").agg({"TextBlob_Polarity": "sum",'TextBlob_Subjectivity' : 'sum'})
+                                date_df.groupby("datetime").agg(
+                                    {"TextBlob_Polarity": "sum", 'TextBlob_Subjectivity': 'sum'})
 
                                 text_df = data[col_select].dropna()
-                                text = " ".join(review for review in data[col_select].dropna() if review is not None and type(review) == str)
-                                st.success("There are {} words in the selected text input data.".format(len(text)))  
+                                text = " ".join(review for review in data[col_select].dropna() if
+                                                review is not None and type(review) == str)
+                                st.success("There are {} words in the selected text input data.".format(len(text)))
 
-                                col1,col2=st.columns(2)
+                                col1, col2 = st.columns(2)
                                 with col1:
-                                    fig1 = px.line(date_df, x="datetime", y="TextBlob_Polarity", title="Sentiment aggregate across timeline")
+                                    fig1 = px.line(date_df, x="datetime", y="TextBlob_Polarity",
+                                                   title="Sentiment aggregate across timeline")
                                     fig1.update_xaxes(nticks=30)
-                                    #sent_by_date=fig1.show()
+                                    # sent_by_date=fig1.show()
                                     st.plotly_chart(fig1)
-                                # Uncomment for subjectivity plot    
-                                #with col2:
+
+                                # Uncomment for subjectivity plot
+                                # with col2:
                                 #    fig2 = px.line(date_df, x="datetime", y="TextBlob_Subjectivity", title="Subjectivity across timeline")
                                 #    fig2.update_xaxes(nticks=30)
                                 #    #subj_by_date=fig2.show()
                                 #    st.plotly_chart(fig2)                                    
 
-
                                 # word_count across timeline
-
-
 
                                 def get_words_count(row):
                                     message = row.clean_text
@@ -1121,212 +1090,213 @@ def main():
                                     # Telegram may save some messages as json
                                     if message is None or type(message) != str:
                                         return None
-                                    return re.sub("[^\w]", " ",  message).split().__len__()                            
-                                
-                                data["word_count"] = data[["clean_text"]].apply(get_words_count,axis=1)                                
+                                    return re.sub("[^\w]", " ", message).split().__len__()
 
+                                data["word_count"] = data[["clean_text"]].apply(get_words_count, axis=1)
 
-
-                                W_count = px.line(data, x="datetime", y="word_count", title="Total length of conversation across timeline")
-                                w_count_axes=W_count.update_xaxes(nticks=30)
-                                #subj_by_date=fig2.show()
+                                W_count = px.line(data, x="datetime", y="word_count",
+                                                  title="Total length of conversation across timeline")
+                                w_count_axes = W_count.update_xaxes(nticks=30)
+                                # subj_by_date=fig2.show()
                                 with col2:
-                                    st.plotly_chart(w_count_axes)   
+                                    st.plotly_chart(w_count_axes)
 
-                                ##########################################################
+                                    ##########################################################
                                 # word count
                                 ##########################################################
-                          
 
-                                col1,col2=st.columns(2)                                                            
+                                col1, col2 = st.columns(2)
                                 with col1:
-                                    w_count_sort=data["word_count"].resample("D").sum().sort_values(ascending=False).head(10)
-                                    w_count_sort_axes=px.bar(w_count_sort, title="When was the most conversations across timeline ? [Top 10]")
+                                    w_count_sort = data["word_count"].resample("D").sum().sort_values(
+                                        ascending=False).head(10)
+                                    w_count_sort_axes = px.bar(w_count_sort,
+                                                               title="When was the most conversations across timeline ? [Top 10]")
                                     fig_sort = go.Figure(w_count_sort_axes)
                                     st.plotly_chart(w_count_sort_axes)
-                                    #st.pyplot(hrs_D.plot.barh(x=hrs_D.index, y=hrs_D.values, title="Top 10 words by day"))
+                                    # st.pyplot(hrs_D.plot.barh(x=hrs_D.index, y=hrs_D.values, title="Top 10 words by day"))
 
                                 data["hour"] = data.datetime.dt.hour
                                 with col2:
-                                    w_count_hrs=data.groupby("hour")["word_count"].sum().head(24)
-                                    w_count_hrs_axes=px.bar(w_count_hrs, title="Which hour of the day were the users active?")
+                                    w_count_hrs = data.groupby("hour")["word_count"].sum().head(24)
+                                    w_count_hrs_axes = px.bar(w_count_hrs,
+                                                              title="Which hour of the day were the users active?")
                                     fig_hrs = go.Figure(w_count_hrs_axes)
                                     st.plotly_chart(fig_hrs)
 
-  
+                                # sumy_10=data[["datetime","hour",from_col,"word_count","clean_text"]]
+                                sumy_10 = data[[from_col, "word_count", "clean_text"]]
 
-                                #sumy_10=data[["datetime","hour",from_col,"word_count","clean_text"]]
-                                sumy_10=data[[from_col,"word_count","clean_text"]]
-                              
-                                sumy_10=sumy_10.sort_values(by=["word_count"],ascending=False)
-                                sumy_10=sumy_10.head(10)
-                                #st.dataframe(sumy_10)
-                                
+                                sumy_10 = sumy_10.sort_values(by=["word_count"], ascending=False)
+                                sumy_10 = sumy_10.head(10)
+                                # st.dataframe(sumy_10)
+
                                 sumy_filtered_data = sumy_10['clean_text']
                                 sumy_topic_corpus = filtered_data.astype(str)
-                                #topic_text = topic_corpus.values.tolist()
-
-
+                                # topic_text = topic_corpus.values.tolist()
 
                                 st.subheader('Word cloud on Top 10 by conversation length')
 
-                                sumy_words=" "
-                                stopwords=stopwords
+                                sumy_words = " "
+                                stopwords = stopwords
 
-                                #Iterate through csv file
+                                # Iterate through csv file
                                 for val in sumy_topic_corpus:
 
-                                    #typecaste each val to string
-                                    val=str(val)
+                                    # typecaste each val to string
+                                    val = str(val)
 
-                                    #split the vale
-                                    tokens=val.split(maxsplit=2)
+                                    # split the vale
+                                    tokens = val.split(maxsplit=2)
 
-                                    #Converts each token into lowercase
+                                    # Converts each token into lowercase
                                     for i in range(len(tokens)):
-                                        tokens[i]=tokens[i].lower()
+                                        tokens[i] = tokens[i].lower()
 
-                                    sumy_words+=" ".join(tokens)+" "
-                                #width=1600,height=800, 
-                                wordcloud=WordCloud(background_color="White",
-                                stopwords=stopwords,min_font_size=10).generate(sumy_words)
+                                    sumy_words += " ".join(tokens) + " "
+                                # width=1600,height=800,
+                                wordcloud = WordCloud(background_color="White",
+                                                      stopwords=stopwords, min_font_size=10).generate(sumy_words)
 
-                                #ploting the word cloud overall texts
-                                sumy_fig=plt.figure(figsize=(8,8),facecolor=None)
-                                plt.imshow(wordcloud,interpolation='bilinear')
+                                # ploting the word cloud overall texts
+                                sumy_fig = plt.figure(figsize=(8, 8), facecolor=None)
+                                plt.imshow(wordcloud, interpolation='bilinear')
                                 plt.axis("off")
                                 plt.tight_layout(pad=0)
-                                col1,col2=st.columns(2)
+                                col1, col2 = st.columns(2)
                                 with col1:
                                     st.write('**Word cloud on Top 10 by conversation length**')
-                                    st.pyplot(sumy_fig)                                
-                                
-                                
-                                
-                                # Download file
-                                
+                                    st.pyplot(sumy_fig)
+
+                                    # Download file
+
                                 towrite = io.BytesIO()
                                 downloaded_file = sumy_10.to_excel(towrite, encoding='utf-8', index=False, header=True)
                                 towrite.seek(0)  # reset pointer
                                 b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Most_word_count.xlsx">Download excel with top 10 word counts</a>'
+                                linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Most_word_count.xlsx">Download excel with top 10 word counts</a>'
                                 st.markdown(linko, unsafe_allow_html=True)
 
                                 def dayofweek(i):
                                     l = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
                                     return l[i];
-                                day_df=pd.DataFrame(data["word_count"])
+
+                                day_df = pd.DataFrame(data["word_count"])
                                 day_df['day_of_date'] = data['datetime'].dt.weekday
                                 day_df['day_of_date'] = day_df["day_of_date"].apply(dayofweek)
                                 day_df["messagecount"] = 1
                                 day = day_df.groupby("day_of_date").sum()
                                 day.reset_index(inplace=True)
 
-                                fig = px.line_polar(day, r='messagecount', theta='day_of_date', line_close=True,title="How active were the users on each day of the week")
+                                fig = px.line_polar(day, r='messagecount', theta='day_of_date', line_close=True,
+                                                    title="How active were the users on each day of the week")
                                 fig.update_traces(fill='toself')
                                 fig.update_layout(
-                                polar=dict(
-                                    radialaxis=dict(
-                                    visible=True
-                                    )),
-                                showlegend=False
+                                    polar=dict(
+                                        radialaxis=dict(
+                                            visible=True
+                                        )),
+                                    showlegend=False
                                 )
                                 with col2:
-                                    #fig.show()
+                                    # fig.show()
                                     st.write("How active were the users on each day of the week")
                                     st.plotly_chart(fig)
-                                
 
-                                #Filtering by name
+                                # Filtering by name
                                 #####################
                                 d = []
                                 for name in people:
                                     user_df = data[data[from_col] == name]
                                     words_per_message = np.sum(user_df['word_count'])
-                                    average_words=words_per_message/len(user_df)                                    
+                                    average_words = words_per_message / len(user_df)
                                     d.append(
                                         {
                                             'name': name,
                                             'length of chats': int(words_per_message),
-                                            'word average per message':  words_per_message/user_df.shape[0]
+                                            'word average per message': words_per_message / user_df.shape[0]
                                         }
                                     )
 
                             st.subheader('User stats')
-                            user_stat_df=pd.DataFrame(d)
+                            user_stat_df = pd.DataFrame(d)
                             st.dataframe(user_stat_df)
 
                             # Download file
-                            
+
                             towrite = io.BytesIO()
                             downloaded_file = user_stat_df.to_excel(towrite, encoding='utf-8', index=False, header=True)
                             towrite.seek(0)  # reset pointer
                             b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                            linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="User_Metrics.xlsx">Download excel with user metrics</a>'
+                            linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="User_Metrics.xlsx">Download excel with user metrics</a>'
                             st.markdown(linko, unsafe_allow_html=True)
 
-
                             #########################
-                            #Sentiment Analysis
+                            # Sentiment Analysis
                             #########################
 
                         elif options == "Sentiment Analysis" and submit:
-                            
-                            data['vader_comp'] = data.apply(lambda x: sentiment_analyzer_scores(x.clean_text), axis=1, result_type='expand')
 
-                            data['vader_prediction']=data.apply(lambda x: 'positive' if x.vader_comp > 0 else ('negative' if x.vader_comp < 0 else 'neutral'),axis=1)
+                            data['vader_comp'] = data.apply(lambda x: sentiment_analyzer_scores(x.clean_text), axis=1,
+                                                            result_type='expand')
 
-                            valence=open(proj_dir + "/vader_lexicon.txt","r")
+                            data['vader_prediction'] = data.apply(lambda x: 'positive' if x.vader_comp > 0 else (
+                                'negative' if x.vader_comp < 0 else 'neutral'), axis=1)
 
-                            #split the vader.txt file contents with respect to spaces
-                            lex_dict={}
+                            valence = open(proj_dir + "/vader_lexicon.txt", "r")
+
+                            # split the vader.txt file contents with respect to spaces
+                            lex_dict = {}
                             for line in valence:
-                                (word,measure)=line.strip().split('\t')[0:2]
-                                lex_dict[word]=float(measure)
+                                (word, measure) = line.strip().split('\t')[0:2]
+                                lex_dict[word] = float(measure)
 
-                            #split those values that are less than '0' as negative and vice versa
-                            tokenized_words_neg=dict((k,v) for k, v in lex_dict.items()if v<0)
-                            tokenized_words_pos=dict((k,v) for k, v in lex_dict.items()if v>0)
+                            # split those values that are less than '0' as negative and vice versa
+                            tokenized_words_neg = dict((k, v) for k, v in lex_dict.items() if v < 0)
+                            tokenized_words_pos = dict((k, v) for k, v in lex_dict.items() if v > 0)
 
-                            data['neg_keywords']=data.apply(lambda row: [word for word in word_tokenize(row['clean_text']) if word.lower() in tokenized_words_neg], axis=1)
-                            data['pos_keywords']=data.apply(lambda row: [word for word in word_tokenize(row['clean_text']) if word.lower() in tokenized_words_pos], axis=1)
+                            data['neg_keywords'] = data.apply(
+                                lambda row: [word for word in word_tokenize(row['clean_text']) if
+                                             word.lower() in tokenized_words_neg], axis=1)
+                            data['pos_keywords'] = data.apply(
+                                lambda row: [word for word in word_tokenize(row['clean_text']) if
+                                             word.lower() in tokenized_words_pos], axis=1)
 
                             data.to_excel(proj_dir + "/Sentiments.xlsx")
 
-                            col1,col2,col3=st.columns(3)
+                            col1, col2, col3 = st.columns(3)
 
-                            #Word cloud overall text
-                            topic_corpus = topic_text#.values.tolist()
-                            #topic_corpus = ' '.join(map(str, topic_corpus)) 
+                            # Word cloud overall text
+                            topic_corpus = topic_text  # .values.tolist()
+                            # topic_corpus = ' '.join(map(str, topic_corpus))
 
-                            #topic_corpus_words = list(sent_to_words(topic_corpus))
-                            
+                            # topic_corpus_words = list(sent_to_words(topic_corpus))
+
                             st.subheader('Word cloud on selected column')
 
-                            comment_words=" "
-                            stopwords=stopwords
+                            comment_words = " "
+                            stopwords = stopwords
 
-                            #Iterate through csv file
+                            # Iterate through csv file
                             for val in topic_corpus:
 
-                                #typecaste each val to string
-                                val=str(val)
+                                # typecaste each val to string
+                                val = str(val)
 
-                                #split the vale
-                                tokens=val.split(maxsplit=2)
+                                # split the vale
+                                tokens = val.split(maxsplit=2)
 
-                                #Converts each token into lowercase
+                                # Converts each token into lowercase
                                 for i in range(len(tokens)):
-                                    tokens[i]=tokens[i].lower()
+                                    tokens[i] = tokens[i].lower()
 
-                                comment_words+=" ".join(tokens)+" "
-                            #width=1600,height=800, 
-                            wordcloud=WordCloud(background_color="White",
-                            stopwords=stopwords,min_font_size=10).generate(comment_words)
+                                comment_words += " ".join(tokens) + " "
+                            # width=1600,height=800,
+                            wordcloud = WordCloud(background_color="White",
+                                                  stopwords=stopwords, min_font_size=10).generate(comment_words)
 
-                            #ploting the word cloud overall texts
-                            fig1=plt.figure(figsize=(8,8),facecolor=None)
-                            plt.imshow(wordcloud,interpolation='bilinear')
+                            # ploting the word cloud overall texts
+                            fig1 = plt.figure(figsize=(8, 8), facecolor=None)
+                            plt.imshow(wordcloud, interpolation='bilinear')
                             plt.axis("off")
                             plt.tight_layout(pad=0)
                             with col1:
@@ -1334,125 +1304,118 @@ def main():
                                 st.pyplot(fig1)
 
                             #
-                            pos_comment_words=" "
-                            #Iterate through csv file
+                            pos_comment_words = " "
+                            # Iterate through csv file
                             for val in data.pos_keywords:
 
-                                #typecaste each val to string
-                                val=str(val)
+                                # typecaste each val to string
+                                val = str(val)
 
-                                #split the vale
-                                tokens=val.split(maxsplit=2)
+                                # split the vale
+                                tokens = val.split(maxsplit=2)
 
-                                #Converts each token into lowercase
+                                # Converts each token into lowercase
                                 for i in range(len(tokens)):
-                                    tokens[i]=tokens[i].lower()
+                                    tokens[i] = tokens[i].lower()
 
-                                pos_comment_words+=" ".join(tokens)+" "
-                            #width=1600,height=800, 
-                            wordcloud=WordCloud(background_color="White",
-                            stopwords=stopwords,min_font_size=10).generate(pos_comment_words)
+                                pos_comment_words += " ".join(tokens) + " "
+                            # width=1600,height=800,
+                            wordcloud = WordCloud(background_color="White",
+                                                  stopwords=stopwords, min_font_size=10).generate(pos_comment_words)
 
-                            #ploting the word cloud overall texts
-                            fig2=plt.figure(figsize=(8,8),facecolor=None)
-                            plt.imshow(wordcloud,interpolation='bilinear')
+                            # ploting the word cloud overall texts
+                            fig2 = plt.figure(figsize=(8, 8), facecolor=None)
+                            plt.imshow(wordcloud, interpolation='bilinear')
                             plt.axis("off")
                             plt.tight_layout(pad=0)
                             with col2:
                                 st.write('**WC on Positive keywords**')
                                 st.pyplot(fig2)
 
-                          #
-                            neg_comment_words=" "
-                            #Iterate through csv file
+                            #
+                            neg_comment_words = " "
+                            # Iterate through csv file
                             for val in data.neg_keywords:
 
-                                #typecaste each val to string
-                                val=str(val)
+                                # typecaste each val to string
+                                val = str(val)
 
-                                #split the vale
-                                tokens=val.split(maxsplit=2)
+                                # split the vale
+                                tokens = val.split(maxsplit=2)
 
-                                #Converts each token into lowercase
+                                # Converts each token into lowercase
                                 for i in range(len(tokens)):
-                                    tokens[i]=tokens[i].lower()
+                                    tokens[i] = tokens[i].lower()
 
-                                neg_comment_words+=" ".join(tokens)+" "
-                            #width=1600,height=800, 
-                            wordcloud=WordCloud(background_color="White",
-                            stopwords=stopwords,min_font_size=10).generate(neg_comment_words)
+                                neg_comment_words += " ".join(tokens) + " "
+                            # width=1600,height=800,
+                            wordcloud = WordCloud(background_color="White",
+                                                  stopwords=stopwords, min_font_size=10).generate(neg_comment_words)
 
-                            #ploting the word cloud overall texts
-                            fig3=plt.figure(figsize=(8,8),facecolor=None)
-                            plt.imshow(wordcloud,interpolation='bilinear')
+                            # ploting the word cloud overall texts
+                            fig3 = plt.figure(figsize=(8, 8), facecolor=None)
+                            plt.imshow(wordcloud, interpolation='bilinear')
                             plt.axis("off")
                             plt.tight_layout(pad=0)
                             with col3:
                                 st.write('**WC on negative keywords**')
-                                st.pyplot(fig3)        
-
-
-                                
+                                st.pyplot(fig3)
 
                             sent_count = data['vader_prediction'].value_counts()
-                            #sent_count = sent_count[:4,]
-                            plt.figure(figsize=(10,5))
+                            # sent_count = sent_count[:4,]
+                            plt.figure(figsize=(10, 5))
                             sns.barplot(sent_count.index, sent_count.values, alpha=0.8)
                             plt.title('Sentiment count across chat data')
                             plt.ylabel('Number of Occurrences', fontsize=12)
                             plt.xlabel('Sentiment polarity', fontsize=12)
                             plt.xticks(rotation=45)
                             for p in plt.gca().patches:
-                                        plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
-                                            ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
-                                            textcoords='offset points')                            
-                            sent=plt.show()
+                                plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
+                                             ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
+                                             textcoords='offset points')
+                            sent = plt.show()
                             st.pyplot(sent)
 
-                            #data=pd.read_excel('/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Sentiments.xlsx')
-                            #data=data[["clean_text","vader_prediction","neg_keywords","pos_keywords"]]
-                            #st.dataframe(data)
-                            #Export to excel
+                            # data=pd.read_excel('/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Sentiments.xlsx')
+                            # data=data[["clean_text","vader_prediction","neg_keywords","pos_keywords"]]
+                            # st.dataframe(data)
+                            # Export to excel
                             towrite = io.BytesIO()
                             downloaded_file = data.to_excel(towrite, encoding='utf-8', index=False, header=True)
                             towrite.seek(0)  # reset pointer
                             b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                            linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Sentiment_Prediction.xlsx">Download Sentiment_predictions file</a>'
+                            linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Sentiment_Prediction.xlsx">Download Sentiment_predictions file</a>'
                             st.markdown(linko, unsafe_allow_html=True)
-
 
                             #########################
                             # Emotion Analysis
                             #########################
 
 
-                        elif options == "Emotion Analysis" and submit: 
-
-
+                        elif options == "Emotion Analysis" and submit:
 
                             filename = model_dir + '/emotion_classifier_pipe_lr_Nov_2021.pkl'
                             # LogisticRegression Pipeline
-                            pipe_lr = Pipeline(steps=[('cv',CountVectorizer()),('lr',LogisticRegression())])
+                            pipe_lr = Pipeline(steps=[('cv', CountVectorizer()), ('lr', LogisticRegression())])
                             pipeline_file = open(filename, 'rb')
-                            loaded_model=joblib.load(filename)
-                            data['emotion_text'] = data[col_select].apply(nfx.remove_userhandles)                            
-                            
+                            loaded_model = joblib.load(filename)
+                            data['emotion_text'] = data[col_select].apply(nfx.remove_userhandles)
+
                             data['emotion_text'] = data['emotion_text'].apply(nfx.remove_userhandles)
 
                             # User html_tags
                             data['emotion_text'] = data['emotion_text'].apply(nfx.remove_html_tags)
 
-                            #Stopwords
-                            data['emotion_text'] = data['emotion_text'].apply(nfx.remove_urls)                            
+                            # Stopwords
+                            data['emotion_text'] = data['emotion_text'].apply(nfx.remove_urls)
 
+                            data['emotion_predict'] = data['emotion_text'].apply(
+                                lambda x: (loaded_model.predict([x]))[0])
 
-
-                            data['emotion_predict'] = data['emotion_text'].apply(lambda x: (loaded_model.predict([x]))[0])
-                            
                             # plot the distribution of the predicted emotions
                             emot_count = data['emotion_predict'].value_counts()
 
-                            plt.figure(figsize=(5,5))
+                            plt.figure(figsize=(5, 5))
                             sns.barplot(emot_count.index, emot_count.values, alpha=0.8)
                             plt.title('Emotion Analysis')
                             plt.ylabel('Number of Occurrences', fontsize=12)
@@ -1460,28 +1423,23 @@ def main():
                             plt.xticks(rotation=45)
                             # annotation on chart
                             for p in plt.gca().patches:
-                                        plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
-                                            ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
-                                            textcoords='offset points')
-                            emot=plt.show()
+                                plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
+                                             ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
+                                             textcoords='offset points')
+                            emot = plt.show()
                             st.pyplot(emot)
 
                             st.dataframe(data)
-                          
-                            
 
-                            
                             # Export to excel
                             towrite = io.BytesIO()
                             downloaded_file = data.to_excel(towrite, encoding='utf-8', index=False, header=True)
                             towrite.seek(0)  # reset pointer
                             b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                            linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Emotion_Prediction.xlsx">Download Emotion_predictions file</a>'
-                            st.markdown(linko, unsafe_allow_html=True)  
+                            linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Emotion_Prediction.xlsx">Download Emotion_predictions file</a>'
+                            st.markdown(linko, unsafe_allow_html=True)
 
                         elif options == "Twitter Sentiment Analysis" and submit:
-
-
 
                             # # # # TWITTER CLIENT # # # #
                             class TwitterClient():
@@ -1496,29 +1454,33 @@ def main():
 
                                 def get_user_timeline_tweets(self, num_tweets):
                                     tweets = []
-                                    for tweet in Cursor(self.twitter_client.user_timeline, id=self.twitter_user).items(num_tweets):
+                                    for tweet in Cursor(self.twitter_client.user_timeline, id=self.twitter_user).items(
+                                            num_tweets):
                                         tweets.append(tweet)
                                     return tweets
 
                                 def get_friend_list(self, num_friends):
                                     friend_list = []
-                                    for friend in Cursor(self.twitter_client.friends, id=self.twitter_user).items(num_friends):
+                                    for friend in Cursor(self.twitter_client.friends, id=self.twitter_user).items(
+                                            num_friends):
                                         friend_list.append(friend)
                                     return friend_list
 
                                 def get_home_timeline_tweets(self, num_tweets):
                                     home_timeline_tweets = []
-                                    for tweet in Cursor(self.twitter_client.home_timeline, id=self.twitter_user).items(num_tweets):
+                                    for tweet in Cursor(self.twitter_client.home_timeline, id=self.twitter_user).items(
+                                            num_tweets):
                                         home_timeline_tweets.append(tweet)
                                     return home_timeline_tweets
-
 
                             # # # # TWITTER AUTHENTICATER # # # #
                             class TwitterAuthenticator():
 
                                 def authenticate_twitter_app(self):
-                                    auth = OAuthHandler(twitter_credentials.CONSUMER_KEY, twitter_credentials.CONSUMER_SECRET)
-                                    auth.set_access_token(twitter_credentials.ACCESS_TOKEN, twitter_credentials.ACCESS_TOKEN_SECRET)
+                                    auth = OAuthHandler(twitter_credentials.CONSUMER_KEY,
+                                                        twitter_credentials.CONSUMER_SECRET)
+                                    auth.set_access_token(twitter_credentials.ACCESS_TOKEN,
+                                                          twitter_credentials.ACCESS_TOKEN_SECRET)
                                     return auth
 
                             # # # # TWITTER STREAMER # # # #
@@ -1526,24 +1488,25 @@ def main():
                                 """
                                 Class for streaming and processing live tweets.
                                 """
+
                                 def __init__(self):
-                                    self.twitter_autenticator = TwitterAuthenticator()    
+                                    self.twitter_autenticator = TwitterAuthenticator()
 
                                 def stream_tweets(self, fetched_tweets_filename, hash_tag_list):
                                     # This handles Twitter authetification and the connection to Twitter Streaming API
                                     listener = TwitterListener(fetched_tweets_filename)
-                                    auth = self.twitter_autenticator.authenticate_twitter_app() 
+                                    auth = self.twitter_autenticator.authenticate_twitter_app()
                                     stream = Stream(auth, listener)
 
                                     # This line filter Twitter Streams to capture data by the keywords: 
                                     stream.filter(track=hash_tag_list)
-
 
                             # # # # TWITTER STREAM LISTENER # # # #
                             class TwitterListener(StreamListener):
                                 """
                                 This is a basic listener that just prints received tweets to stdout.
                                 """
+
                                 def __init__(self, fetched_tweets_filename):
                                     self.fetched_tweets_filename = fetched_tweets_filename
 
@@ -1556,13 +1519,12 @@ def main():
                                     except BaseException as e:
                                         print("Error on_data %s" % str(e))
                                     return True
-                                    
+
                                 def on_error(self, status):
                                     if status == 420:
                                         # Returning False on_data method in case rate limit occurs.
                                         return False
                                     print(status)
-
 
                             class TweetAnalyzer():
                                 """
@@ -1570,11 +1532,12 @@ def main():
                                 """
 
                                 def clean_tweet(self, tweet):
-                                    return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
+                                    return ' '.join(
+                                        re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
 
                                 def analyze_sentiment(self, tweet):
                                     analysis = TextBlob(self.clean_tweet(tweet))
-                                    
+
                                     if analysis.sentiment.polarity > 0:
                                         return 1
                                     elif analysis.sentiment.polarity == 0:
@@ -1594,7 +1557,6 @@ def main():
 
                                     return df
 
-                            
                             if __name__ == '__main__':
 
                                 twitter_client = TwitterClient()
@@ -1602,29 +1564,26 @@ def main():
 
                                 api = twitter_client.get_twitter_client_api()
 
-                                twitter_handle=st.text_input("Enter the Twitter Handle")
+                                twitter_handle = st.text_input("Enter the Twitter Handle")
 
-                                tweet_count=st.slider("Number of Tweets", min_value=1, max_value=10000, value=200)
+                                tweet_count = st.slider("Number of Tweets", min_value=1, max_value=10000, value=200)
 
                                 if twitter_handle is not None:
 
                                     try:
 
-
                                         tweets = api.user_timeline(screen_name=twitter_handle, count=tweet_count)
 
-
-
                                         df = tweet_analyzer.tweets_to_data_frame(tweets)
-                                        df['sentiment'] = np.array([tweet_analyzer.analyze_sentiment(tweet) for tweet in df['tweets']])
-
+                                        df['sentiment'] = np.array(
+                                            [tweet_analyzer.analyze_sentiment(tweet) for tweet in df['tweets']])
 
                                         st.dataframe(df)
 
                                         # plot the distribution of the predicted emotions
                                         tweet_sent_count = df['sentiment'].value_counts()
 
-                                        plt.figure(figsize=(5,5))
+                                        plt.figure(figsize=(5, 5))
                                         sns.barplot(tweet_sent_count.index, tweet_sent_count.values, alpha=0.8)
                                         plt.title('Sentiment Analysis')
                                         plt.ylabel('Number of Occurrences', fontsize=12)
@@ -1632,53 +1591,45 @@ def main():
                                         plt.xticks(rotation=45)
                                         # annotation on chart
                                         for p in plt.gca().patches:
-                                                    plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
-                                                        ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
-                                                        textcoords='offset points')
-                                        tweet_sent_plot=plt.show()
+                                            plt.annotate("%.0f" % p.get_height(),
+                                                         (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                         ha='center', va='center', fontsize=10, color='black',
+                                                         xytext=(0, 5),
+                                                         textcoords='offset points')
+                                        tweet_sent_plot = plt.show()
                                         st.pyplot(tweet_sent_plot)
 
-                                        #Export to excel
+                                        # Export to excel
                                         towrite = io.BytesIO()
-                                        downloaded_file = df.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                                        downloaded_file = df.to_excel(towrite, encoding='utf-8', index=False,
+                                                                      header=True)
                                         towrite.seek(0)  # reset pointer
                                         b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                        linko= f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Twitter_handle.xlsx">Download Sentiment_predictions file</a>'
+                                        linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Twitter_handle.xlsx">Download Sentiment_predictions file</a>'
                                         st.markdown(linko, unsafe_allow_html=True)
-                                    
+
                                     except:
                                         st.warning("Please enter a Twitter handle name")
 
-
-
-
-
-
-                
                 st.checkbox("Numerical Data")
 
             else:
                 st.warning("IncorrectUsername/Password")
 
 
-    elif choice=="Create Account":
+    elif choice == "Create Account":
         st.subheader("Create new account")
-        new_user=st.text_input("Username")
-        new_user_email=st.text_input("Email")
-        new_password=st.text_input("Password",type='password')
-        new_password=st.text_input("Retype Password",type='password')
-        
+        new_user = st.text_input("Username")
+        new_user_email = st.text_input("Email")
+        new_password = st.text_input("Password", type='password')
+        new_password = st.text_input("Retype Password", type='password')
+
         if st.button("Create Account"):
             create_usertable()
-            add_userdata(new_user,new_password)
+            add_userdata(new_user, new_password)
             st.success("You have successfully created a valid account")
             st.info("Login now")
 
-
-
-
-
-    
     # Bottom Headers
 
     st.sidebar.subheader("About App")
@@ -1686,10 +1637,7 @@ def main():
     st.sidebar.info("Analytix Online Singapore")
     st.sidebar.subheader("By")
     st.sidebar.text("© Analytix Online 2021")
-        
 
 
-
-
-if __name__== '__main__':
+if __name__ == '__main__':
     main()
