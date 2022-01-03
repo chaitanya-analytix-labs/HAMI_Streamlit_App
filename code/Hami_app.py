@@ -138,8 +138,8 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 # import model file
 
-model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
-# model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
 lottie_home2 = load_lottiefile(proj_dir + "/Hami_home.json")
@@ -1561,30 +1561,34 @@ def main():
 
                                 twitter_client = TwitterClient()
                                 tweet_analyzer = TweetAnalyzer()
-
-                                api = twitter_client.get_twitter_client_api()
-
+                                twitter_streamer = TwitterStreamer()
                                 twitter_handle = st.text_input("Enter the Twitter Handle")
+                                twitter_hashtag = st.text_input("Enter the Hashtag")                                
 
-                                tweet_count = st.slider("Number of Tweets", min_value=1, max_value=10000, value=200)
+                                api_hand = twitter_client.get_twitter_client_api()
+
+
+
+
+                                tweet_count = st.slider("How many tweets do you want to get?", min_value=1, max_value=10000,step=20, value=200)
 
                                 if twitter_handle is not None:
 
                                     try:
 
-                                        tweets = api.user_timeline(screen_name=twitter_handle, count=tweet_count)
+                                        tweets_hand = api_hand.user_timeline(screen_name=twitter_handle, count=tweet_count,lang="en")
 
-                                        df = tweet_analyzer.tweets_to_data_frame(tweets)
-                                        df['sentiment'] = np.array(
-                                            [tweet_analyzer.analyze_sentiment(tweet) for tweet in df['tweets']])
+                                        df_hand = tweet_analyzer.tweets_to_data_frame(tweets_hand)
+                                        df_hand['sentiment'] = np.array(
+                                            [tweet_analyzer.analyze_sentiment(tweet) for tweet in df_hand['tweets']])
 
-                                        st.dataframe(df)
+                                        st.dataframe(df_hand)
 
                                         # plot the distribution of the predicted emotions
-                                        tweet_sent_count = df['sentiment'].value_counts()
+                                        tweet_sent_count_hand = df_hand['sentiment'].value_counts()
 
                                         plt.figure(figsize=(5, 5))
-                                        sns.barplot(tweet_sent_count.index, tweet_sent_count.values, alpha=0.8)
+                                        sns.barplot(tweet_sent_count_hand.index, tweet_sent_count_hand.values, alpha=0.8)
                                         plt.title('Sentiment Analysis')
                                         plt.ylabel('Number of Occurrences', fontsize=12)
                                         plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
@@ -1596,12 +1600,12 @@ def main():
                                                          ha='center', va='center', fontsize=10, color='black',
                                                          xytext=(0, 5),
                                                          textcoords='offset points')
-                                        tweet_sent_plot = plt.show()
-                                        st.pyplot(tweet_sent_plot)
+                                        tweet_sent_plot_hand = plt.show()
+                                        st.pyplot(tweet_sent_plot_hand)
 
                                         # Export to excel
                                         towrite = io.BytesIO()
-                                        downloaded_file = df.to_excel(towrite, encoding='utf-8', index=False,
+                                        downloaded_file = df_hand.to_excel(towrite, encoding='utf-8', index=False,
                                                                       header=True)
                                         towrite.seek(0)  # reset pointer
                                         b64 = base64.b64encode(towrite.read()).decode()  # some strings
@@ -1610,6 +1614,86 @@ def main():
 
                                     except:
                                         st.warning("Please enter a Twitter handle name")
+                                
+                                elif twitter_hashtag is not None:
+                                        
+                                        try:
+
+                                            import twint
+                                            import pandas as pd
+                                            #from functions import get_csv_download_link
+
+                                        # customize form
+
+                                            search_term = st.text_input('Enter Hashtag')
+                                            limit = tweet_count
+                                            output_csv = st.radio('Save a CSV file?', ['Yes', 'No'])
+                                            file_name = st.text_input('Name the CSV file:')
+                                            submit_button = st.form_submit_button(label='Search')
+
+                                            # configure twint
+                                            c = twint.Config()
+
+                                            c.Search = search_term
+                                            c.Limit = limit
+
+                                            c.Store_csv = True
+
+                                            if c.Store_csv:
+                                                c.Output = f'{file_name}.csv'
+
+                                            twint.run.Search(c)
+
+                                            data = pd.read_csv(f'{file_name}.csv', usecols=['date', 'tweet'])
+                                            st.table(data)
+
+                                            if output_csv == 'Yes':
+                                                st.markdown(get_csv_download_link(data, file_name), unsafe_allow_html=True)
+
+                                            """     
+                                            fetched_tweets_filename = "tweets.txt"
+                                            api_hash = twitter_streamer.stream_tweets(fetched_tweets_filename, twitter_hashtag)                                            
+                                            #tweets_hash = api_hash.search(q=twitter_hashtag, count=tweet_count,lang="en")
+    
+                                            df_hash = tweet_analyzer.tweets_to_data_frame(fetched_tweets_filename)
+                                            df_hash['sentiment'] = np.array(
+                                                [tweet_analyzer.analyze_sentiment(tweet) for tweet in df_hash['tweets']])
+    
+                                            st.dataframe(df_hash)
+    
+                                            # plot the distribution of the predicted emotions
+                                            tweet_sent_count_hash = df_hash['sentiment'].value_counts()
+    
+                                            plt.figure(figsize=(5, 5))
+                                            sns.barplot(tweet_sent_count_hash.index, tweet_sent_count_hash.values, alpha=0.8)
+                                            plt.title('Sentiment Analysis')
+                                            plt.ylabel('Number of Occurrences', fontsize=12)
+                                            plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
+                                            plt.xticks(rotation=45)
+                                            # annotation on chart
+                                            for p in plt.gca().patches:
+                                                plt.annotate("%.0f" % p.get_height(),
+                                                            (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                            ha='center', va='center', fontsize=10, color='black',
+                                                            xytext=(0, 5),
+                                                            textcoords='offset points')
+                                            tweet_sent_plot_hash = plt.show()
+                                            st.pyplot(tweet_sent_plot_hash)  
+
+                                            # Export to excel
+                                            towrite = io.BytesIO()
+                                            downloaded_file = df_hash.to_excel(towrite, encoding='utf-8', index=False,
+                                                                        header=True)
+                                            towrite.seek(0)  # reset pointer
+                                            b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                            linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Twitter_handle.xlsx">Download Sentiment_predictions file</a>'
+                                            st.markdown(linko, unsafe_allow_html=True)
+                                            """
+                                        except:
+                                            st.warning("Please enter Twitter hashtags to be searched")                                            
+
+
+
 
                 st.checkbox("Numerical Data")
 
