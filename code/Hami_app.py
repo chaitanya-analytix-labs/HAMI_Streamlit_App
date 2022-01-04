@@ -93,7 +93,7 @@ import plotly.graph_objects as go
 ###############################
 from tweepy import API
 from tweepy import Cursor
-from tweepy.streaming import StreamListener
+from tweepy.streaming import Stream
 from tweepy import OAuthHandler
 from tweepy import Stream
 
@@ -106,6 +106,11 @@ import numpy as np
 import pandas as pd
 import re
 
+################################
+# Twint for searching tweets
+################################
+import twint
+import pandas as pd
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Regex string for extract specific chartacters/ numbers
@@ -1502,7 +1507,7 @@ def main():
                                     stream.filter(track=hash_tag_list)
 
                             # # # # TWITTER STREAM LISTENER # # # #
-                            class TwitterListener(StreamListener):
+                            class TwitterListener(Stream):
                                 """
                                 This is a basic listener that just prints received tweets to stdout.
                                 """
@@ -1570,13 +1575,47 @@ def main():
 
 
 
-                                tweet_count = st.slider("How many tweets do you want to get?", min_value=1, max_value=10000,step=20, value=200)
+                                tweet_count = st.slider("How many tweets do you want to get?", min_value=1, max_value=300,step=20, value=200)
 
-                                if twitter_handle is not None:
+                                if twitter_hashtag is not None:
+                                     
+                                    limit = tweet_count
+                                    output_csv = st.radio('Save a CSV file?', ['Yes', 'No'])
+                                    file_name = st.text_input('Name the CSV file:')
+
+                                    # configure twint
+                                    c = twint.Config()
+
+                                    c.Search = twitter_hashtag
+                                    c.Limit = limit
+
+                                    c.Store_csv = True
+
+                                    if c.Store_csv:
+                                        c.Output = f'{file_name}.csv'
+
+                                    twint.run.Search(c)
+
+                                    data = pd.read_csv(f'{file_name}.csv', usecols=['date', 'tweet'])
+                                    st.table(data)
+
+                                    if output_csv == 'Yes':
+                                        #st.markdown(get_csv_download_link(data, file_name), unsafe_allow_html=True)
+                                        # Export to excel
+                                        towrite = io.BytesIO()
+                                        downloaded_file = data.to_excel(towrite, encoding='utf-8', index=False,
+                                                                    header=True)
+                                        towrite.seek(0)  # reset pointer
+                                        b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                        linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Tweet_hashtag_results.xlsx">Download search results file</a>'
+                                        st.markdown(linko, unsafe_allow_html=True)  
+
+
+                                elif twitter_handle is not None:
 
                                     try:
 
-                                        tweets_hand = api_hand.user_timeline(screen_name=twitter_handle, count=tweet_count,lang="en")
+                                        tweets_hand = api_hand.user_timeline(screen_name=twitter_handle, count=tweet_count)
 
                                         df_hand = tweet_analyzer.tweets_to_data_frame(tweets_hand)
                                         df_hand['sentiment'] = np.array(
@@ -1609,48 +1648,15 @@ def main():
                                                                       header=True)
                                         towrite.seek(0)  # reset pointer
                                         b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                        linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Twitter_handle.xlsx">Download Sentiment_predictions file</a>'
+                                        linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Twitter_handle.xlsx">Download tweet_results file</a>'
                                         st.markdown(linko, unsafe_allow_html=True)
 
                                     except:
                                         st.warning("Please enter a Twitter handle name")
                                 
-                                elif twitter_hashtag is not None:
-                                        
-                                        try:
+                                              
 
-                                            import twint
-                                            import pandas as pd
-                                            #from functions import get_csv_download_link
-
-                                        # customize form
-
-                                            search_term = st.text_input('Enter Hashtag')
-                                            limit = tweet_count
-                                            output_csv = st.radio('Save a CSV file?', ['Yes', 'No'])
-                                            file_name = st.text_input('Name the CSV file:')
-                                            submit_button = st.form_submit_button(label='Search')
-
-                                            # configure twint
-                                            c = twint.Config()
-
-                                            c.Search = search_term
-                                            c.Limit = limit
-
-                                            c.Store_csv = True
-
-                                            if c.Store_csv:
-                                                c.Output = f'{file_name}.csv'
-
-                                            twint.run.Search(c)
-
-                                            data = pd.read_csv(f'{file_name}.csv', usecols=['date', 'tweet'])
-                                            st.table(data)
-
-                                            if output_csv == 'Yes':
-                                                st.markdown(get_csv_download_link(data, file_name), unsafe_allow_html=True)
-
-                                            """     
+                                        """     
                                             fetched_tweets_filename = "tweets.txt"
                                             api_hash = twitter_streamer.stream_tweets(fetched_tweets_filename, twitter_hashtag)                                            
                                             #tweets_hash = api_hash.search(q=twitter_hashtag, count=tweet_count,lang="en")
@@ -1689,9 +1695,7 @@ def main():
                                             linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Twitter_handle.xlsx">Download Sentiment_predictions file</a>'
                                             st.markdown(linko, unsafe_allow_html=True)
                                             """
-                                        except:
-                                            st.warning("Please enter Twitter hashtags to be searched")                                            
-
+                                    
 
 
 
