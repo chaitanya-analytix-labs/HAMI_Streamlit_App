@@ -1567,17 +1567,20 @@ def main():
                                 twitter_client = TwitterClient()
                                 tweet_analyzer = TweetAnalyzer()
                                 twitter_streamer = TwitterStreamer()
-                                twitter_handle = st.text_input("Enter the Twitter Handle")
-                                twitter_hashtag = st.text_input("Enter the Hashtag")                                
+                                
+                                                               
 
                                 api_hand = twitter_client.get_twitter_client_api()
+                                
+                                hand_hash = st.radio('Select the type of search', ['By twitter handles', 'By twitter Hashtags'])
 
 
 
+                                
 
-                                tweet_count = st.slider("How many tweets do you want to get?", min_value=1, max_value=300,step=20, value=200)
-
-                                if twitter_hashtag is not None:
+                                if hand_hash is 'By twitter hash tags':
+                                    twitter_hashtag = st.text_input("Enter the Hashtag") 
+                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=1, max_value=300,step=20, value=200)
                                      
                                     limit = tweet_count
                                     output_csv = st.radio('Save a CSV file?', ['Yes', 'No'])
@@ -1611,9 +1614,12 @@ def main():
                                         st.markdown(linko, unsafe_allow_html=True)  
 
 
-                                elif twitter_handle is not None:
+                                elif hand_hash is 'By twitter handles':
+
 
                                     try:
+                                        twitter_handle = st.text_input("Enter the Twitter Handle")
+                                        tweet_count = st.slider("How many tweets do you want to get?", min_value=1, max_value=300,step=20, value=200)
 
                                         tweets_hand = api_hand.user_timeline(screen_name=twitter_handle, count=tweet_count)
 
