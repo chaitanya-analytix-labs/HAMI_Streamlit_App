@@ -8,7 +8,7 @@ footer {
     visibility:visible;
 }
 footer:before{
-    content:'Copyright.@.2021:AnalytixOnline';
+    content:'Copyright.@.2022:AnalytixOnline';
     display:block;
     position:Relative;
     color:rgba(38, 39, 48, 0.4);
@@ -21,6 +21,7 @@ footer:before{
 # PYNGROK
 import joblib
 
+import time
 # streamlit-tags
 from streamlit_tags import st_tags  # pip install streamlit_tags==1.0.6
 
@@ -107,12 +108,6 @@ import numpy as np
 import pandas as pd
 import re
 
-################################
-# Twint for searching tweets
-################################
-import twint
-import pandas as pd
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Regex string for extract specific chartacters/ numbers
 regex_str = r'\d{5,8}'
@@ -150,7 +145,9 @@ lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30
 
 lottie_home2 = load_lottiefile(proj_dir + "/Hami_home.json")
 
+lottie_home3 = load_lottiefile("/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/output/72710-ball-in-ring.json")
 
+lottie_home4 = load_lottiefile("/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/output/31548-robot-says-hello.json")
 ##################################
 # PDF Reader
 ##################################
@@ -410,11 +407,11 @@ def main():
     if choice == "Home":
         st.subheader("Home")
         st_lottie(
-            lottie_home2,
+            lottie_home3,
             speed=1,
             reverse=False,
             loop=True,
-            quality="medium",
+            quality="high",
             key=None
         )
 
@@ -429,8 +426,11 @@ def main():
             # if password=='admin':
             create_usertable()
             result = login_user(username, password)
+
             if result:
                 st.success("Logged In as {}".format(username))
+
+
 
                 # Header/Subheader
                 st.header("Analysis")
@@ -1722,49 +1722,6 @@ def main():
                                             st.markdown(linko, unsafe_allow_html=True)
 
                                         except: st.warning("Please enter a valid twitter handle")
-                                
-                                              
-
-                                    """     
-                                        fetched_tweets_filename = "tweets.txt"
-                                        api_hash = twitter_streamer.stream_tweets(fetched_tweets_filename, twitter_hashtag)                                            
-                                        #tweets_hash = api_hash.search(q=twitter_hashtag, count=tweet_count,lang="en")
-
-                                        df_hash = tweet_analyzer.tweets_to_data_frame(fetched_tweets_filename)
-                                        df_hash['sentiment'] = np.array(
-                                            [tweet_analyzer.analyze_sentiment(tweet) for tweet in df_hash['tweets']])
-
-                                        st.dataframe(df_hash)
-
-                                        # plot the distribution of the predicted emotions
-                                        tweet_sent_count_hash = df_hash['sentiment'].value_counts()
-
-                                        plt.figure(figsize=(5, 5))
-                                        sns.barplot(tweet_sent_count_hash.index, tweet_sent_count_hash.values, alpha=0.8)
-                                        plt.title('Sentiment Analysis')
-                                        plt.ylabel('Number of Occurrences', fontsize=12)
-                                        plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
-                                        plt.xticks(rotation=45)
-                                        # annotation on chart
-                                        for p in plt.gca().patches:
-                                            plt.annotate("%.0f" % p.get_height(),
-                                                        (p.get_x() + p.get_width() / 2., p.get_height()),
-                                                        ha='center', va='center', fontsize=10, color='black',
-                                                        xytext=(0, 5),
-                                                        textcoords='offset points')
-                                        tweet_sent_plot_hash = plt.show()
-                                        st.pyplot(tweet_sent_plot_hash)  
-
-                                        # Export to excel
-                                        towrite = io.BytesIO()
-                                        downloaded_file = df_hash.to_excel(towrite, encoding='utf-8', index=False,
-                                                                    header=True)
-                                        towrite.seek(0)  # reset pointer
-                                        b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                        linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Twitter_handle.xlsx">Download Sentiment_predictions file</a>'
-                                        st.markdown(linko, unsafe_allow_html=True)
-                                        """
-                                    
 
 
 
@@ -1775,17 +1732,29 @@ def main():
 
 
     elif choice == "Create Account":
+
         st.subheader("Create new account")
         new_user = st.text_input("Username")
         new_user_email = st.text_input("Email")
         new_password = st.text_input("Password", type='password')
         new_password = st.text_input("Retype Password", type='password')
+    
 
         if st.button("Create Account"):
+            st.balloons()
             create_usertable()
             add_userdata(new_user, new_password)
             st.success("You have successfully created a valid account")
             st.info("Login now")
+
+        st_lottie(
+            lottie_home4,
+            speed=1,
+            reverse=False,
+            loop=True,
+            quality="medium",
+            key=None
+        )
 
     # Bottom Headers
 
@@ -1793,7 +1762,7 @@ def main():
     st.sidebar.text("Hami Data Analysis App")
     st.sidebar.info("Analytix Online Singapore")
     st.sidebar.subheader("By")
-    st.sidebar.text("© Analytix Online 2021")
+    st.sidebar.text("© Analytix Online 2022")
 
 
 if __name__ == '__main__':
