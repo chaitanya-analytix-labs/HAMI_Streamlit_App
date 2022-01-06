@@ -91,6 +91,7 @@ import plotly.graph_objects as go
 ###############################
 # Twitter API packages
 ###############################
+import tweepy as tw
 from tweepy import API
 from tweepy import Cursor
 from tweepy.streaming import Stream
@@ -1572,58 +1573,87 @@ def main():
 
                                 api_hand = twitter_client.get_twitter_client_api()
                                 
-                                hand_hash = st.radio('Select the type of search', ['By twitter handles', 'By twitter Hashtags'])
-
+                                #hand_hash = st.radio('Select the type of search', ['by twitter handle names', 'by twitter hashtags'])
 
 
                                 
 
-                                if hand_hash is 'By twitter hash tags':
-                                    twitter_hashtag = st.text_input("Enter the Hashtag") 
-                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=1, max_value=300,step=20, value=200)
-                                     
-                                    limit = tweet_count
-                                    output_csv = st.radio('Save a CSV file?', ['Yes', 'No'])
-                                    file_name = st.text_input('Name the CSV file:')
+                                if st.checkbox('by twitter hashtags') and submit:
+                                    hash_tag_list = st.text_input('Enter the twitter hash tags')
+                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=50, max_value=10000,step=20, value=500)
 
-                                    # configure twint
-                                    c = twint.Config()
+                                    fetched_tweets_filename = "tweets.txt"
+                                    #api_hash = twitter_streamer.stream_tweets(fetched_tweets_filename, twitter_hashtag)                                            
+                                    tweets_hash = api_hand.search(q=hash_tag_list, count=tweet_count,lang="en")
 
-                                    c.Search = twitter_hashtag
-                                    c.Limit = limit
+                                    df_hash = tweet_analyzer.tweets_to_data_frame(tweets_hash)
+                                    df_hash['sentiment'] = np.array(
+                                        [tweet_analyzer.analyze_sentiment(tweet) for tweet in df_hash['tweets']])
 
-                                    c.Store_csv = True
+                                    st.dataframe(df_hash)
 
-                                    if c.Store_csv:
-                                        c.Output = f'{file_name}.csv'
+                                    # plot the distribution of the predicted emotions
+                                    tweet_sent_count_hash = df_hash['sentiment'].value_counts()
 
-                                    twint.run.Search(c)
+                                    plt.figure(figsize=(5, 5))
+                                    sns.barplot(tweet_sent_count_hash.index, tweet_sent_count_hash.values, alpha=0.8)
+                                    plt.title('Sentiment Analysis')
+                                    plt.ylabel('Number of Occurrences', fontsize=12)
+                                    plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
+                                    plt.xticks(rotation=45)
+                                    # annotation on chart
+                                    for p in plt.gca().patches:
+                                        plt.annotate("%.0f" % p.get_height(),
+                                                    (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                    ha='center', va='center', fontsize=10, color='black',
+                                                    xytext=(0, 5),
+                                                    textcoords='offset points')
+                                    tweet_sent_plot_hash = plt.show()
+                                    st.pyplot(tweet_sent_plot_hash)  
 
-                                    data = pd.read_csv(f'{file_name}.csv', usecols=['date', 'tweet'])
-                                    st.table(data)
-
-                                    if output_csv == 'Yes':
-                                        #st.markdown(get_csv_download_link(data, file_name), unsafe_allow_html=True)
-                                        # Export to excel
-                                        towrite = io.BytesIO()
-                                        downloaded_file = data.to_excel(towrite, encoding='utf-8', index=False,
-                                                                    header=True)
-                                        towrite.seek(0)  # reset pointer
-                                        b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                        linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Tweet_hashtag_results.xlsx">Download search results file</a>'
-                                        st.markdown(linko, unsafe_allow_html=True)  
+                                    # Export to excel
+                                    towrite = io.BytesIO()
+                                    downloaded_file = df_hash.to_excel(towrite, encoding='utf-8', index=False,
+                                                                header=True)
+                                    towrite.seek(0)  # reset pointer
+                                    b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                    linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Twitter_handle.xlsx">Download Sentiment_predictions file</a>'
+                                    st.markdown(linko, unsafe_allow_html=True)                                    
 
 
-                                else:# hand_hash is 'By twitter handles':
+                                elif st.checkbox('by twitter handle names'):
+
+                                    
 
 
                                     
                                     twitter_handle = st.text_input("Enter the Twitter Handle")
-                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=1, max_value=300,step=20, value=250)
+                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=50, max_value=10000,step=20, value=500)
                                     if twitter_handle is not None:
-                                        tweets_hand = api_hand.user_timeline(screen_name=twitter_handle, count=tweet_count)
+                                        
 
-                                        df_hand = tweet_analyzer.tweets_to_data_frame(tweets_hand)
+                                        tweets=[]
+                                        id=[]
+                                        
+                                        date=[]
+                                        source=[]
+                                        likes=[]
+                                        retweets=[]
+
+                                        # Only iterate through the first 200 statuses
+                                        for tweets_hand in tw.Cursor(api_hand.user_timeline,screen_name=twitter_handle).items(tweet_count):
+                                            tweets.append(tweets_hand.text)
+                                            id.append(tweets_hand.id)
+                                            
+                                            date.append(tweets_hand.created_at)
+                                            source.append(tweets_hand.source)
+                                            likes.append(tweets_hand.favorite_count)
+                                            retweets.append(tweets_hand.retweet_count)
+
+                                        df_hand = pd.DataFrame(data={'tweets':tweets,'id':id,'date':date,'source':source,'likes':likes,'retweets':retweets})
+
+                                        
+
                                         df_hand['sentiment'] = np.array(
                                             [tweet_analyzer.analyze_sentiment(tweet) for tweet in df_hand['tweets']])
 
