@@ -19,7 +19,6 @@ footer:before{
 """
 
 # PYNGROK
-from PIL.Image import _Size
 import joblib
 
 import time
@@ -414,8 +413,8 @@ def main():
             loop=True,
             quality="high",
             key=None,
-            width=350,
-            height=350,
+            width=1150,
+            height=850,
         )
 
     elif choice == "Login":
