@@ -19,6 +19,7 @@ footer:before{
 """
 
 # PYNGROK
+from PIL.Image import _Size
 import joblib
 
 import time
@@ -145,9 +146,9 @@ lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30
 
 lottie_home1 = load_lottiefile(proj_dir + "/Hami_home.json")
 
-lottie_home2 = load_lottiefile("/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/output/72710-ball-in-ring.json")
+lottie_home2 = load_lottiefile("/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/output/hamiv3.0logo_ball_in_rings_.json")
 
-lottie_home3 = load_lottiefile("/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/output/31548-robot-says-hello.json")
+lottie_home3 = load_lottiefile("/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/output/Welcome-Gif-robot-says-hello.json")
 ##################################
 # PDF Reader
 ##################################
@@ -412,11 +413,24 @@ def main():
             reverse=False,
             loop=True,
             quality="high",
-            key=None
+            key=None,
+            width=350,
+            height=350,
         )
 
     elif choice == "Login":
         st.subheader("Login Section")
+        st_lottie(
+            lottie_home3,
+            speed=1,
+            reverse=False,
+            loop=True,
+            quality="high",
+            key=None
+        )
+
+
+
 
         username = st.sidebar.text_input("User Name")
         # email=st.sidebar.text_input("Email")
@@ -1732,29 +1746,30 @@ def main():
 
 
     elif choice == "Create Account":
+        col1,col2=st.columns(2)
+        with col2:
+            st_lottie(
+                lottie_home3,
+                speed=1,
+                reverse=False,
+                loop=True,
+                quality="medium",
+                key=None
+            )
+        with col1:
+            st.subheader("Create new account")
+            new_user = st.text_input("Username")
+            new_user_email = st.text_input("Email")
+            new_password = st.text_input("Password", type='password')
+            new_password = st.text_input("Retype Password", type='password')
+        
 
-        st.subheader("Create new account")
-        new_user = st.text_input("Username")
-        new_user_email = st.text_input("Email")
-        new_password = st.text_input("Password", type='password')
-        new_password = st.text_input("Retype Password", type='password')
-    
-
-        if st.button("Create Account"):
-            st.balloons()
-            create_usertable()
-            add_userdata(new_user, new_password)
-            st.success("You have successfully created a valid account")
-            st.info("Login now")
-
-        st_lottie(
-            lottie_home3,
-            speed=1,
-            reverse=False,
-            loop=True,
-            quality="medium",
-            key=None
-        )
+            if st.button("Create Account"):
+                st.balloons()
+                create_usertable()
+                add_userdata(new_user, new_password)
+                st.success("You have successfully created a valid account")
+                st.info("Login now")
 
     # Bottom Headers
 
