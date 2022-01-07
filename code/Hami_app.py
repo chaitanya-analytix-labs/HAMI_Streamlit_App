@@ -143,11 +143,9 @@ model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 #model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
-lottie_home1 = load_lottiefile(proj_dir + "/Hami_home.json")
+lottie_home2 = load_lottiefile(proj_dir + "/Hami_home.json")
 
-lottie_home2 = load_lottiefile("/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/output/hamiv3.0logo_ball_in_rings_.json")
-
-lottie_home3 = load_lottiefile("/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/output/Welcome-Gif-robot-says-hello.json")
+lottie_home3 = load_lottiefile(proj_dir + "/Hami_hello.json")
 ##################################
 # PDF Reader
 ##################################
