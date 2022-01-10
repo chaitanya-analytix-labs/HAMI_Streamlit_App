@@ -40,9 +40,9 @@ except AttributeError:
 
 import nltk
 
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('vader_lexicon')
+# nltk.download('punkt')
+# nltk.download('stopwords')
+# nltk.download('vader_lexicon')
 from nltk.tokenize import sent_tokenize
 from nltk import word_tokenize, FreqDist
 from nltk.corpus import stopwords
