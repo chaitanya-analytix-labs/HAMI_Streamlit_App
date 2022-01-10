@@ -108,7 +108,6 @@ import numpy as np
 import pandas as pd
 import re
 
-
 # Regex string for extract specific chartacters/ numbers
 regex_str = r'\d{5,8}'
 
@@ -140,12 +139,14 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 # import model file
 
 model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
-#model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
+# model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
 lottie_home2 = load_lottiefile(proj_dir + "/Hami_home.json")
 
 lottie_home3 = load_lottiefile(proj_dir + "/Hami_hello.json")
+
+
 ##################################
 # PDF Reader
 ##################################
@@ -417,7 +418,7 @@ def main():
 
     elif choice == "Login":
         st.subheader("Login Section")
-        col1,col2,col3,=st.columns(3)
+        col1, col2, col3, = st.columns(3)
         with col2:
             st_lottie(
                 lottie_home3,
@@ -439,8 +440,6 @@ def main():
 
             if result:
                 st.success("Logged In as {}".format(username))
-
-
 
                 # Header/Subheader
                 st.header("Analysis")
@@ -1287,7 +1286,6 @@ def main():
 
                             # topic_corpus_words = list(sent_to_words(topic_corpus))
 
-
                             comment_words = " "
                             stopwords = stopwords
 
@@ -1376,8 +1374,8 @@ def main():
                                 st.write('**WC on negative keywords**')
                                 st.pyplot(fig3)
 
-                            col1,col2,col3=st.columns(3)
-                                            
+                            col1, col2, col3 = st.columns(3)
+
                             with col2:
                                 sent_count = data['vader_prediction'].value_counts()
                                 # sent_count = sent_count[:4,]
@@ -1388,9 +1386,10 @@ def main():
                                 plt.xlabel('Sentiment polarity', fontsize=12)
                                 plt.xticks(rotation=45)
                                 for p in plt.gca().patches:
-                                    plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
-                                                ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
-                                                textcoords='offset points')
+                                    plt.annotate("%.0f" % p.get_height(),
+                                                 (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                 ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
+                                                 textcoords='offset points')
                                 sent = plt.show()
                                 st.pyplot(sent)
 
@@ -1433,10 +1432,9 @@ def main():
                             # plot the distribution of the predicted emotions
                             emot_count = data['emotion_predict'].value_counts()
 
-                            col1,col2,col3=st.columns(3)
-                            
-                            with col2:
+                            col1, col2, col3 = st.columns(3)
 
+                            with col2:
 
                                 plt.figure(figsize=(5, 5))
                                 sns.barplot(emot_count.index, emot_count.values, alpha=0.8)
@@ -1446,9 +1444,10 @@ def main():
                                 plt.xticks(rotation=45)
                                 # annotation on chart
                                 for p in plt.gca().patches:
-                                    plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
-                                                ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
-                                                textcoords='offset points')
+                                    plt.annotate("%.0f" % p.get_height(),
+                                                 (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                 ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
+                                                 textcoords='offset points')
                                 emot = plt.show()
                                 st.pyplot(emot)
 
@@ -1585,54 +1584,54 @@ def main():
                                 twitter_client = TwitterClient()
                                 tweet_analyzer = TweetAnalyzer()
                                 twitter_streamer = TwitterStreamer()
-                                
-                                                               
 
                                 api_hand = twitter_client.get_twitter_client_api()
-                                
-
-
-                                
 
                                 if st.checkbox('Search by twitter keywords/hashtags'):
                                     st.subheader('Analyse with results from twitter keywords/hashtags')
                                     hash_tag_list = st.text_input('Enter keyword or hash tags to search for')
-                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=50, max_value=10000,step=20, value=100)
+                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=50,
+                                                            max_value=10000, step=20, value=100)
                                     print(tweet_count)
 
                                     if hash_tag_list is not None:
                                         print(hash_tag_list)
                                         try:
-                                            tweets=[]
-                                            id=[]
-                                            date=[]
-                                            source=[]
-                                            likes=[]
-                                            retweets=[]
+                                            tweets = []
+                                            id = []
+                                            date = []
+                                            source = []
+                                            likes = []
+                                            retweets = []
 
-                                            for tweets_hash in tw.Cursor(api_hand.search_tweets,q=hash_tag_list, count=tweet_count).items(tweet_count):
+                                            for tweets_hash in tw.Cursor(api_hand.search_tweets, q=hash_tag_list,
+                                                                         count=tweet_count).items(tweet_count):
                                                 tweets.append(tweets_hash.text)
                                                 id.append(tweets_hash.id)
                                                 date.append(tweets_hash.created_at)
                                                 source.append(tweets_hash.source)
                                                 likes.append(tweets_hash.favorite_count)
                                                 retweets.append(tweets_hash.retweet_count)
-                                            df_hash = pd.DataFrame(data={'tweets':tweets,'id':id,'date':date,'source':source,'likes':likes,'retweets':retweets})
+                                            df_hash = pd.DataFrame(
+                                                data={'tweets': tweets, 'id': id, 'date': date, 'source': source,
+                                                      'likes': likes, 'retweets': retweets})
 
                                             df_hash['sentiment'] = np.array(
-                                                [tweet_analyzer.analyze_sentiment(tweet) for tweet in df_hash['tweets']])
+                                                [tweet_analyzer.analyze_sentiment(tweet) for tweet in
+                                                 df_hash['tweets']])
 
-                                            st.write('Excel file with results from twitter keywords/hashtags') 
+                                            st.write('Excel file with results from twitter keywords/hashtags')
                                             st.dataframe(df_hash)
 
                                             # plot the distribution of the predicted emotions
                                             tweet_sent_count_hash = df_hash['sentiment'].value_counts()
 
-                                            col1,col2,col3=st.columns(3)
-                                            
+                                            col1, col2, col3 = st.columns(3)
+                                            print(hash_tag_list)
                                             with col2:
                                                 plt.figure(figsize=(5, 5))
-                                                sns.barplot(tweet_sent_count_hash.index, tweet_sent_count_hash.values, alpha=0.8)
+                                                sns.barplot(tweet_sent_count_hash.index, tweet_sent_count_hash.values,
+                                                            alpha=0.8)
                                                 plt.title('Sentiment Analysis')
                                                 plt.ylabel('Number of Occurrences', fontsize=12)
                                                 plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
@@ -1640,53 +1639,58 @@ def main():
                                                 # annotation on chart
                                                 for p in plt.gca().patches:
                                                     plt.annotate("%.0f" % p.get_height(),
-                                                                (p.get_x() + p.get_width() / 2., p.get_height()),
-                                                                ha='center', va='center', fontsize=10, color='black',
-                                                                xytext=(0, 5),
-                                                                textcoords='offset points')
+                                                                 (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                                 ha='center', va='center', fontsize=10, color='black',
+                                                                 xytext=(0, 5),
+                                                                 textcoords='offset points')
                                                 tweet_sent_plot_hash = plt.show()
-                                                st.pyplot(tweet_sent_plot_hash)  
+                                                st.pyplot(tweet_sent_plot_hash)
 
-                                            # Convert date-time to readable format
+                                                # Convert date-time to readable format
                                             print(df_hash['tweets'])
-                                            date_columns = df_hash.select_dtypes(include=['datetime64[ns, UTC]']).columns
+                                            date_columns = df_hash.select_dtypes(
+                                                include=['datetime64[ns, UTC]']).columns
                                             for date_column in date_columns:
                                                 df_hash[date_column] = df_hash[date_column].dt.date
 
                                             # Export to excel
                                             towrite = io.BytesIO()
                                             downloaded_file = df_hash.to_excel(towrite, encoding='utf-8', index=False,
-                                                                        header=True)
+                                                                               header=True)
                                             towrite.seek(0)  # reset pointer
                                             b64 = base64.b64encode(towrite.read()).decode()  # some strings
                                             linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Tweet_hashtag_results.xlsx">Download Sentiment_predictions file</a>'
-                                            st.markdown(linko, unsafe_allow_html=True)                                    
+                                            st.markdown(linko, unsafe_allow_html=True)
 
-                                        except: st.warning('No tweets found')
+                                        except:
+                                            print("err")
+                                            st.warning('No tweets found')
 
                                 if st.checkbox('Search by twitter handle names'):
                                     st.subheader('Analyse with results from twitter handle names')
                                     twitter_handle = st.text_input("Enter the Twitter Handle")
 
-                                    tweets=[]
-                                    id=[]
-                                    date=[]
-                                    source=[]
-                                    likes=[]
-                                    retweets=[]
+                                    tweets = []
+                                    id = []
+                                    date = []
+                                    source = []
+                                    likes = []
+                                    retweets = []
 
                                     # Only iterate through the first 200 statuses
-                                    for tweets_hand in tw.Cursor(api_hand.user_timeline,screen_name=twitter_handle).items(tweet_count):
+                                    for tweets_hand in tw.Cursor(api_hand.user_timeline,
+                                                                 screen_name=twitter_handle).items(tweet_count):
                                         tweets.append(tweets_hand.text)
                                         id.append(tweets_hand.id)
-                                        
+
                                         date.append(tweets_hand.created_at)
                                         source.append(tweets_hand.source)
                                         likes.append(tweets_hand.favorite_count)
                                         retweets.append(tweets_hand.retweet_count)
 
-                                    df_hand = pd.DataFrame(data={'tweets':tweets,'id':id,'date':date,'source':source,'likes':likes,'retweets':retweets})
-
+                                    df_hand = pd.DataFrame(
+                                        data={'tweets': tweets, 'id': id, 'date': date, 'source': source,
+                                              'likes': likes, 'retweets': retweets})
 
                                     df_hand['sentiment'] = np.array(
                                         [tweet_analyzer.analyze_sentiment(tweet) for tweet in df_hand['tweets']])
@@ -1699,13 +1703,13 @@ def main():
 
                                             # plot the distribution of the predicted emotions
                                             tweet_sent_count_hand = df_hand['sentiment'].value_counts()
-                                            col1,col2,col3=st.columns(3)
-                                            
+                                            col1, col2, col3 = st.columns(3)
+
                                             with col2:
 
-
                                                 plt.figure(figsize=(5, 5))
-                                                sns.barplot(tweet_sent_count_hand.index, tweet_sent_count_hand.values, alpha=0.8)
+                                                sns.barplot(tweet_sent_count_hand.index, tweet_sent_count_hand.values,
+                                                            alpha=0.8)
                                                 plt.title('Sentiment Analysis')
                                                 plt.ylabel('Number of Occurrences', fontsize=12)
                                                 plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
@@ -1713,34 +1717,32 @@ def main():
                                                 # annotation on chart
                                                 for p in plt.gca().patches:
                                                     plt.annotate("%.0f" % p.get_height(),
-                                                                    (p.get_x() + p.get_width() / 2., p.get_height()),
-                                                                    ha='center', va='center', fontsize=10, color='black',
-                                                                    xytext=(0, 5),
-                                                                    textcoords='offset points')
+                                                                 (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                                 ha='center', va='center', fontsize=10, color='black',
+                                                                 xytext=(0, 5),
+                                                                 textcoords='offset points')
                                                 tweet_sent_plot_hand = plt.show()
                                                 st.pyplot(tweet_sent_plot_hand)
 
                                             # Convert date-time to readable format
 
-                                            date_columns = df_hand.select_dtypes(include=['datetime64[ns, UTC]']).columns
+                                            date_columns = df_hand.select_dtypes(
+                                                include=['datetime64[ns, UTC]']).columns
                                             for date_column in date_columns:
                                                 df_hand[date_column] = df_hand[date_column].dt.date
-                                                
-                                            
-                                            
+
                                             # Export to excel
 
                                             towrite = io.BytesIO()
                                             downloaded_file = df_hand.to_excel(towrite, encoding='utf-8', index=False,
-                                                                            header=True)
+                                                                               header=True)
                                             towrite.seek(0)  # reset pointer
                                             b64 = base64.b64encode(towrite.read()).decode()  # some strings
                                             linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Tweet_handle_results.xlsx">Download tweet_results file</a>'
                                             st.markdown(linko, unsafe_allow_html=True)
 
-                                        except: st.warning("Please enter a valid twitter handle")
-
-
+                                        except:
+                                            st.warning("Please enter a valid twitter handle")
 
                 st.checkbox("Numerical Data")
 
@@ -1749,7 +1751,7 @@ def main():
 
 
     elif choice == "Create Account":
-        col1,col2=st.columns(2)
+        col1, col2 = st.columns(2)
         with col2:
             st_lottie(
                 lottie_home3,
@@ -1765,7 +1767,6 @@ def main():
             new_user_email = st.text_input("Email")
             new_password = st.text_input("Password", type='password')
             new_password = st.text_input("Retype Password", type='password')
-        
 
             if st.button("Create Account"):
                 st.balloons()
