@@ -139,7 +139,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 # import model file
 
-model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 #model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
@@ -417,17 +417,16 @@ def main():
 
     elif choice == "Login":
         st.subheader("Login Section")
-        st_lottie(
-            lottie_home3,
-            speed=1,
-            reverse=False,
-            loop=True,
-            quality="high",
-            key=None
-        )
-
-
-
+        col1,col2,col3,=st.columns(3)
+        with col2:
+            st_lottie(
+                lottie_home3,
+                speed=1,
+                reverse=False,
+                loop=True,
+                quality="high",
+                key=None
+            )
 
         username = st.sidebar.text_input("User Name")
         # email=st.sidebar.text_input("Email")
@@ -1589,13 +1588,10 @@ def main():
                                 
 
                                 if st.checkbox('Search by twitter keywords/hashtags'):
-                                   
-                                   
+                                    st.subheader('Analyse with results from twitter keywords/hashtags')
                                     hash_tag_list = st.text_input('Enter keyword or hash tags to search for')
                                     tweet_count = st.slider("How many tweets do you want to get?", min_value=50, max_value=10000,step=20, value=500)
-
-                                    #fetched_tweets_filename = "tweets.txt"
-                                    #api_hash = twitter_streamer.stream_tweets(fetched_tweets_filename, twitter_hashtag)                                            
+                                         
                                     tweets=[]
                                     id=[]
                                     date=[]
@@ -1615,14 +1611,9 @@ def main():
 
                                             df_hash = pd.DataFrame(data={'tweets':tweets,'id':id,'date':date,'source':source,'likes':likes,'retweets':retweets})
 
-
-                                            #df_hash = tweet_analyzer.tweets_to_data_frame(tweets_hash)
                                             df_hash['sentiment'] = np.array(
                                                 [tweet_analyzer.analyze_sentiment(tweet) for tweet in df_hash['tweets']])
                                     
-                                    
-                                    
-                                        
                                             st.dataframe(df_hash)
 
                                             # plot the distribution of the predicted emotions
@@ -1662,7 +1653,7 @@ def main():
                                         except: st.warning('No tweets found')
 
                                 if st.checkbox('Search by twitter handle names'):
-                                
+                                    st.subheader('Analyse with results from twitter handle names')
                                     twitter_handle = st.text_input("Enter the Twitter Handle")
                                     tweet_count = st.slider("How many tweets do you want to get?", min_value=50, max_value=10000,step=20, value=500)
 
