@@ -1287,7 +1287,6 @@ def main():
 
                             # topic_corpus_words = list(sent_to_words(topic_corpus))
 
-                            st.subheader('Word cloud on selected column')
 
                             comment_words = " "
                             stopwords = stopwords
@@ -1377,20 +1376,23 @@ def main():
                                 st.write('**WC on negative keywords**')
                                 st.pyplot(fig3)
 
-                            sent_count = data['vader_prediction'].value_counts()
-                            # sent_count = sent_count[:4,]
-                            plt.figure(figsize=(10, 5))
-                            sns.barplot(sent_count.index, sent_count.values, alpha=0.8)
-                            plt.title('Sentiment count across chat data')
-                            plt.ylabel('Number of Occurrences', fontsize=12)
-                            plt.xlabel('Sentiment polarity', fontsize=12)
-                            plt.xticks(rotation=45)
-                            for p in plt.gca().patches:
-                                plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
-                                             ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
-                                             textcoords='offset points')
-                            sent = plt.show()
-                            st.pyplot(sent)
+                            col1,col2,col3=st.columns(3)
+                                            
+                            with col2:
+                                sent_count = data['vader_prediction'].value_counts()
+                                # sent_count = sent_count[:4,]
+                                plt.figure(figsize=(10, 5))
+                                sns.barplot(sent_count.index, sent_count.values, alpha=0.8)
+                                plt.title('Sentiment count across chat data')
+                                plt.ylabel('Number of Occurrences', fontsize=12)
+                                plt.xlabel('Sentiment polarity', fontsize=12)
+                                plt.xticks(rotation=45)
+                                for p in plt.gca().patches:
+                                    plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
+                                                textcoords='offset points')
+                                sent = plt.show()
+                                st.pyplot(sent)
 
                             # data=pd.read_excel('/Volumes/GoogleDrive/My Drive/HAMI/Production/Application/output/Sentiments.xlsx')
                             # data=data[["clean_text","vader_prediction","neg_keywords","pos_keywords"]]
@@ -1431,19 +1433,24 @@ def main():
                             # plot the distribution of the predicted emotions
                             emot_count = data['emotion_predict'].value_counts()
 
-                            plt.figure(figsize=(5, 5))
-                            sns.barplot(emot_count.index, emot_count.values, alpha=0.8)
-                            plt.title('Emotion Analysis')
-                            plt.ylabel('Number of Occurrences', fontsize=12)
-                            plt.xlabel('Emotions Expressed in the text', fontsize=12)
-                            plt.xticks(rotation=45)
-                            # annotation on chart
-                            for p in plt.gca().patches:
-                                plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
-                                             ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
-                                             textcoords='offset points')
-                            emot = plt.show()
-                            st.pyplot(emot)
+                            col1,col2,col3=st.columns(3)
+                            
+                            with col2:
+
+
+                                plt.figure(figsize=(5, 5))
+                                sns.barplot(emot_count.index, emot_count.values, alpha=0.8)
+                                plt.title('Emotion Analysis')
+                                plt.ylabel('Number of Occurrences', fontsize=12)
+                                plt.xlabel('Emotions Expressed in the text', fontsize=12)
+                                plt.xticks(rotation=45)
+                                # annotation on chart
+                                for p in plt.gca().patches:
+                                    plt.annotate("%.0f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                ha='center', va='center', fontsize=10, color='black', xytext=(0, 5),
+                                                textcoords='offset points')
+                                emot = plt.show()
+                                st.pyplot(emot)
 
                             st.dataframe(data)
 
@@ -1590,17 +1597,18 @@ def main():
                                 if st.checkbox('Search by twitter keywords/hashtags'):
                                     st.subheader('Analyse with results from twitter keywords/hashtags')
                                     hash_tag_list = st.text_input('Enter keyword or hash tags to search for')
-                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=50, max_value=10000,step=20, value=500)
-                                         
-                                    tweets=[]
-                                    id=[]
-                                    date=[]
-                                    source=[]
-                                    likes=[]
-                                    retweets=[]
+                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=50, max_value=10000,step=20, value=100)
+
 
                                     if hash_tag_list is not None:
                                         try:
+                                            tweets=[]
+                                            id=[]
+                                            date=[]
+                                            source=[]
+                                            likes=[]
+                                            retweets=[]
+
                                             for tweets_hash in tw.Cursor(api_hand.search_tweets,q=hash_tag_list, count=tweet_count).items(tweet_count):
                                                 tweets.append(tweets_hash.text)
                                                 id.append(tweets_hash.id)
@@ -1608,32 +1616,35 @@ def main():
                                                 source.append(tweets_hash.source)
                                                 likes.append(tweets_hash.favorite_count)
                                                 retweets.append(tweets_hash.retweet_count)
-
                                             df_hash = pd.DataFrame(data={'tweets':tweets,'id':id,'date':date,'source':source,'likes':likes,'retweets':retweets})
 
                                             df_hash['sentiment'] = np.array(
                                                 [tweet_analyzer.analyze_sentiment(tweet) for tweet in df_hash['tweets']])
-                                    
+
+                                            st.write('Excel file with results from twitter keywords/hashtags') 
                                             st.dataframe(df_hash)
 
                                             # plot the distribution of the predicted emotions
                                             tweet_sent_count_hash = df_hash['sentiment'].value_counts()
 
-                                            plt.figure(figsize=(5, 5))
-                                            sns.barplot(tweet_sent_count_hash.index, tweet_sent_count_hash.values, alpha=0.8)
-                                            plt.title('Sentiment Analysis')
-                                            plt.ylabel('Number of Occurrences', fontsize=12)
-                                            plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
-                                            plt.xticks(rotation=45)
-                                            # annotation on chart
-                                            for p in plt.gca().patches:
-                                                plt.annotate("%.0f" % p.get_height(),
-                                                            (p.get_x() + p.get_width() / 2., p.get_height()),
-                                                            ha='center', va='center', fontsize=10, color='black',
-                                                            xytext=(0, 5),
-                                                            textcoords='offset points')
-                                            tweet_sent_plot_hash = plt.show()
-                                            st.pyplot(tweet_sent_plot_hash)  
+                                            col1,col2,col3=st.columns(3)
+                                            
+                                            with col2:
+                                                plt.figure(figsize=(5, 5))
+                                                sns.barplot(tweet_sent_count_hash.index, tweet_sent_count_hash.values, alpha=0.8)
+                                                plt.title('Sentiment Analysis')
+                                                plt.ylabel('Number of Occurrences', fontsize=12)
+                                                plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
+                                                plt.xticks(rotation=45)
+                                                # annotation on chart
+                                                for p in plt.gca().patches:
+                                                    plt.annotate("%.0f" % p.get_height(),
+                                                                (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                                ha='center', va='center', fontsize=10, color='black',
+                                                                xytext=(0, 5),
+                                                                textcoords='offset points')
+                                                tweet_sent_plot_hash = plt.show()
+                                                st.pyplot(tweet_sent_plot_hash)  
 
                                             # Convert date-time to readable format
 
@@ -1655,7 +1666,6 @@ def main():
                                 if st.checkbox('Search by twitter handle names'):
                                     st.subheader('Analyse with results from twitter handle names')
                                     twitter_handle = st.text_input("Enter the Twitter Handle")
-                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=50, max_value=10000,step=20, value=500)
 
                                     tweets=[]
                                     id=[]
@@ -1683,27 +1693,31 @@ def main():
                                     if twitter_handle is not None:
 
                                         try:
-
+                                            st.write('Excel file with desired results from tweet handle')
                                             st.dataframe(df_hand)
 
                                             # plot the distribution of the predicted emotions
                                             tweet_sent_count_hand = df_hand['sentiment'].value_counts()
+                                            col1,col2,col3=st.columns(3)
+                                            
+                                            with col2:
 
-                                            plt.figure(figsize=(5, 5))
-                                            sns.barplot(tweet_sent_count_hand.index, tweet_sent_count_hand.values, alpha=0.8)
-                                            plt.title('Sentiment Analysis')
-                                            plt.ylabel('Number of Occurrences', fontsize=12)
-                                            plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
-                                            plt.xticks(rotation=45)
-                                            # annotation on chart
-                                            for p in plt.gca().patches:
-                                                plt.annotate("%.0f" % p.get_height(),
-                                                                (p.get_x() + p.get_width() / 2., p.get_height()),
-                                                                ha='center', va='center', fontsize=10, color='black',
-                                                                xytext=(0, 5),
-                                                                textcoords='offset points')
-                                            tweet_sent_plot_hand = plt.show()
-                                            st.pyplot(tweet_sent_plot_hand)
+
+                                                plt.figure(figsize=(5, 5))
+                                                sns.barplot(tweet_sent_count_hand.index, tweet_sent_count_hand.values, alpha=0.8)
+                                                plt.title('Sentiment Analysis')
+                                                plt.ylabel('Number of Occurrences', fontsize=12)
+                                                plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
+                                                plt.xticks(rotation=45)
+                                                # annotation on chart
+                                                for p in plt.gca().patches:
+                                                    plt.annotate("%.0f" % p.get_height(),
+                                                                    (p.get_x() + p.get_width() / 2., p.get_height()),
+                                                                    ha='center', va='center', fontsize=10, color='black',
+                                                                    xytext=(0, 5),
+                                                                    textcoords='offset points')
+                                                tweet_sent_plot_hand = plt.show()
+                                                st.pyplot(tweet_sent_plot_hand)
 
                                             # Convert date-time to readable format
 
