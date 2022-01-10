@@ -1594,7 +1594,7 @@ def main():
                                                             max_value=10000, step=20, value=100)
                                     print(tweet_count)
 
-                                    if hash_tag_list is not None:
+                                    if hash_tag_list:
                                         print(hash_tag_list)
                                         try:
                                             tweets = []
@@ -1629,7 +1629,6 @@ def main():
                                             col1, col2, col3 = st.columns(3)
                                             with col2:
                                                 plt.figure(figsize=(5, 5))
-                                                print(tweet_sent_count_hash)
                                                 sns.barplot(tweet_sent_count_hash.index, tweet_sent_count_hash.values,
                                                             alpha=0.8)
                                                 plt.title('Sentiment Analysis')
