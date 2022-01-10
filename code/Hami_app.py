@@ -139,7 +139,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 # import model file
 
-model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 #model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
@@ -1598,9 +1598,10 @@ def main():
                                     st.subheader('Analyse with results from twitter keywords/hashtags')
                                     hash_tag_list = st.text_input('Enter keyword or hash tags to search for')
                                     tweet_count = st.slider("How many tweets do you want to get?", min_value=50, max_value=10000,step=20, value=100)
-
+                                    print(tweet_count)
 
                                     if hash_tag_list is not None:
+                                        print(hash_tag_list)
                                         try:
                                             tweets=[]
                                             id=[]
@@ -1647,7 +1648,7 @@ def main():
                                                 st.pyplot(tweet_sent_plot_hash)  
 
                                             # Convert date-time to readable format
-
+                                            print(df_hash['tweets'])
                                             date_columns = df_hash.select_dtypes(include=['datetime64[ns, UTC]']).columns
                                             for date_column in date_columns:
                                                 df_hash[date_column] = df_hash[date_column].dt.date
