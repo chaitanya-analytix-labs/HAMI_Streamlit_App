@@ -1629,13 +1629,14 @@ def main():
                                             col1, col2, col3 = st.columns(3)
                                             with col2:
                                                 plt.figure(figsize=(5, 5))
+                                                print(tweet_sent_count_hash)
                                                 sns.barplot(tweet_sent_count_hash.index, tweet_sent_count_hash.values,
                                                             alpha=0.8)
                                                 plt.title('Sentiment Analysis')
                                                 plt.ylabel('Number of Occurrences', fontsize=12)
                                                 plt.xlabel('Sentiments Expressed in the tweets', fontsize=12)
                                                 plt.xticks(rotation=45)
-                                                print("hash_tag_list")
+
                                                 # annotation on chart
                                                 for p in plt.gca().patches:
                                                     plt.annotate("%.0f" % p.get_height(),
@@ -1643,7 +1644,6 @@ def main():
                                                                  ha='center', va='center', fontsize=10, color='black',
                                                                  xytext=(0, 5),
                                                                  textcoords='offset points')
-                                                print("hash_tag_list__1")
                                                 tweet_sent_plot_hash = plt.show()
                                                 st.pyplot(tweet_sent_plot_hash)
 
