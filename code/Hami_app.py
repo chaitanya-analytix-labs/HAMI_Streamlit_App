@@ -138,7 +138,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 # import model file
 
-model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 # model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
@@ -1584,14 +1584,20 @@ def main():
                                 twitter_client = TwitterClient()
                                 tweet_analyzer = TweetAnalyzer()
                                 twitter_streamer = TwitterStreamer()
-
+                                
+                                col1,col2=st.columns(2)
+                                with col1:
+                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=50,
+                                    max_value=10000, step=20, value=100)
+                                with col2:    
+                                    lang=st.multiselect('Language Selection',['en','zh','es','fr','de','it','ja','ko','pt','ru','tr','ar','bg','ca','cs','da','el','fi','he','hu','id','is','nb','nl','pl','ro','sk','sv','uk','vi','th','tl'],
+                                    default='en')
                                 api_hand = twitter_client.get_twitter_client_api()
-
+                                
                                 if st.checkbox('Search by twitter keywords/hashtags'):
                                     st.subheader('Analyse with results from twitter keywords/hashtags')
                                     hash_tag_list = st.text_input('Enter keyword or hash tags to search for')
-                                    tweet_count = st.slider("How many tweets do you want to get?", min_value=50,
-                                                            max_value=10000, step=20, value=100)
+
 
                                     if hash_tag_list:
                                         try:
@@ -1602,7 +1608,7 @@ def main():
                                             likes = []
                                             retweets = []
 
-                                            for tweets_hash in tw.Cursor(api_hand.search_tweets, q=hash_tag_list,
+                                            for tweets_hash in tw.Cursor(api_hand.search_tweets, q=hash_tag_list,lang=lang,
                                                                          count=tweet_count).items(tweet_count):
                                                 tweets.append(tweets_hash.text)
                                                 id.append(tweets_hash.id)
@@ -1675,7 +1681,7 @@ def main():
                                     retweets = []
 
                                     # Only iterate through the first 200 statuses
-                                    for tweets_hand in tw.Cursor(api_hand.user_timeline,
+                                    for tweets_hand in tw.Cursor(api_hand.user_timeline,lang=lang,
                                                                  screen_name=twitter_handle).items(tweet_count):
                                         tweets.append(tweets_hand.text)
                                         id.append(tweets_hand.id)
