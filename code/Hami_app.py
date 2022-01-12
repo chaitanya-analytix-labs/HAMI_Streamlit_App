@@ -138,7 +138,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 # import model file
 
-model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 # model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
@@ -1599,7 +1599,7 @@ def main():
                                     hash_tag_list = st.text_input('Enter keyword or hash tags to search for')
 
 
-                                    if hash_tag_list:
+                                    if hash_tag_list is not None:
                                         try:
                                             tweets = []
                                             id = []
@@ -1608,8 +1608,7 @@ def main():
                                             likes = []
                                             retweets = []
 
-                                            for tweets_hash in tw.Cursor(api_hand.search_tweets, q=hash_tag_list,lang=lang,
-                                                                         count=tweet_count).items(tweet_count):
+                                            for tweets_hash in tw.Cursor(api_hand.search_tweets, q=hash_tag_list,lang=lang,count=tweet_count).items(tweet_count):
                                                 tweets.append(tweets_hash.text)
                                                 id.append(tweets_hash.id)
                                                 date.append(tweets_hash.created_at)
@@ -1681,8 +1680,7 @@ def main():
                                     retweets = []
 
                                     # Only iterate through the first 200 statuses
-                                    for tweets_hand in tw.Cursor(api_hand.user_timeline,lang=lang,
-                                                                 screen_name=twitter_handle).items(tweet_count):
+                                    for tweets_hand in tw.Cursor(api_hand.user_timeline,lang=lang,screen_name=twitter_handle,count=tweet_count).items(tweet_count):
                                         tweets.append(tweets_hand.text)
                                         id.append(tweets_hand.id)
 
