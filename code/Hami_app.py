@@ -21,6 +21,14 @@ footer:before{
 # PYNGROK
 import joblib
 
+# reddit
+
+from datetime import datetime
+import praw
+import pandas as pd
+import numpy as np
+import streamlit as st
+
 import time
 # streamlit-tags
 from streamlit_tags import st_tags  # pip install streamlit_tags==1.0.6
@@ -102,6 +110,7 @@ from tweepy import Stream
 from textblob import TextBlob
 
 import twitter_credentials
+import reddit_credentials
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -557,7 +566,7 @@ def main():
                         options = st.radio("Select the task",
                                            ["Topic Modelling", "Entity analysis", "Sentiment Analysis",
                                             "Emotion Analysis", "Text Summarization",
-                                            "Time Series Analysis", "Text Similarity", "Twitter Sentiment Analysis"])
+                                            "Time Series Analysis", "Text Similarity", "Twitter Sentiment Analysis","Reddit text analysis"])
                         submit = st.form_submit_button(label="Submit")
 
                         #########################
@@ -1744,6 +1753,50 @@ def main():
 
                                         except:
                                             st.warning("Please enter a valid twitter handle")
+
+                        ####REDDIT TEXT ANALYSIS####    
+                        elif options == 'Reddit text analysis' and submit:
+                            st.subheader('Reddit text analysis')
+
+                            # Select the subreddit
+
+                            if st.checkbox('Search by Subreddit'):
+                                st.subheader('Analyse posts from selected Subreddit topic')
+                                
+
+
+                                col1,col2=st.columns(2)
+                                with col1:
+                                    reddit_count = st.slider("How many subreddit posts do you want to get?", min_value=10,
+                                    max_value=10000, step=10, value=15)
+                                with col2:
+                                    subreddit_topic = st.selectbox('Select a subreddit', ['machinelearning'])
+
+
+                                #reddit = praw.Reddit(client_id='a98a0mNa_GgWIdEPYMeztQ', client_secret='YZwWwobAMtVzsPI_Zz09mAOwI48tkA', user_agent='chaitanya@AOL')
+                                reddit = praw.Reddit(client_id=reddit_credentials.my_client_id, client_secret=reddit_credentials.my_client_secret, user_agent=reddit_credentials.my_user_agent)
+                                posts = []
+                                ml_subreddit = reddit.subreddit(subreddit_topic)
+                                for post in ml_subreddit.hot(limit=reddit_count):
+                                    posts.append([post.title, post.score, post.id, post.subreddit, post.url, post.num_comments, post.selftext, post.created])
+                                posts = pd.DataFrame(posts,columns=['title', 'score', 'id', 'subreddit', 'url', 'num_comments', 'body', 'created'])
+
+
+                                #st.write(ml_subreddit.description)
+                                st.write(ml_subreddit.subscribers)
+                                
+
+                                # Export to excel
+                                towrite = io.BytesIO()
+                                downloaded_file = posts.to_excel(towrite, encoding='utf-8', index=False,
+                                                                    header=True)
+                                towrite.seek(0)  # reset pointer
+                                b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Reddit_results.xlsx">Download Reddit scrapped text file</a>'
+                                st.markdown(linko, unsafe_allow_html=True)
+
+
+
 
                 st.checkbox("Numerical Data")
 
