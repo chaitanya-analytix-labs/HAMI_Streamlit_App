@@ -148,8 +148,8 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 # import model file
 
-model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
-# model = SentenceTransformer('/Volumes/GoogleDrive/My Drive/HAMI/Production/HAMI_Streamlit_App/model/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
+model = SentenceTransformer('/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/model_for_similarity/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
 lottie_home2 = load_lottiefile(proj_dir + "/Hami_home.json")
@@ -708,6 +708,7 @@ def main():
                                 st.write("**Dominant Topic Output**")
                                 fr = pd.read_excel(proj_dir + '/Topics.xlsx')
                                 st.dataframe(fr)
+                                
                                 # Export fr to excel
                                 towrite = io.BytesIO()
                                 downloaded_file = fr.to_excel(towrite, encoding='utf-8', index=False, header=True)
@@ -742,11 +743,11 @@ def main():
                             st.header("Enter a sentence or keyword to search for")
                             TargetSentence = st.text_input('Enter sentence to be searched')
                             # Confirmation key words in agent's sentences
-                            TargetKeyWords = st_tags('Enter target keywords:', 'Press enter to add', ['vaccination'])
+                            #TargetKeyWords = st_tags('Enter target keywords:', 'Press enter to add', ['vaccination'])
                             # Confirmation response key words in customer's sentences       
 
                             ####################################################
-                            if TargetSentence is not None or TargetKeyWords != '':
+                            if TargetSentence is not None:# or TargetKeyWords != '':
 
                                 try:
                                     ####################################################
@@ -784,21 +785,26 @@ def main():
                                     sentence_df['confirmation_order'] = sentence_df['confirmation_sim'].rank(
                                         method='first', ascending=False)
 
-                                    temp_dict = {}
+                                    ####################################################
+                                    # keyword similarity
+                                    ####################################################
+                                    #temp_dict = {}
 
-                                    for index, row in sentence_df.iterrows():
-                                        if (row['confirmation_order'] <= 11 - StrictLevel) and \
-                                                (row['confirmation_sim'] > 0.35) or \
-                                                _check_word_in_sentence(TargetSentence, row['text']):
-                                            st.write('Matched rows with Sentence:', int(row['index']), row['text'])
-                                        temp_dict = {
-                                            'index': int(row['index']),
-                                            'text': row['text']
-                                        }
+                                    #for index, row in sentence_df.iterrows():
+                                    #    if (row['confirmation_order'] <= 11 - StrictLevel) and \
+                                    #            (row['confirmation_sim'] > 0.35) or \
+                                    #            _check_word_in_sentence(TargetSentence, row['text']):
+                                    #        st.write('Matched rows with Sentence:', int(row['index']), row['text'])
+                                    #    temp_dict = {
+                                    #        'index': int(row['index']),
+                                    #        'text': row['text']
+                                    #    }
                                     # for keyword in TargetKeyWords:
-                                    for index, row in sentence_df.iterrows():
-                                        if (_check_word_in_sentence(TargetKeyWords, row['text'])):
-                                            st.write('Matched rows with keywords:', int(row['index']), row['text'])
+                                    #for index, row in sentence_df.iterrows():
+                                    #    if (_check_word_in_sentence(TargetSentence, row['text'])):
+                                    #        st.write('Matched rows with keywords:', int(row['index']), row['text'])
+
+                                    ####################################################
 
                                     st.write("**Text Similarity results**")
                                     df = data
@@ -1807,32 +1813,33 @@ def main():
 
                             elif st.checkbox('Search by URL of subreddit webpage'):
                                 st.subheader('Analyse posts from selected URL of subreddit')
+                                with st.spinner('Wait for it...'):
 
-                                #col1,col2=st.columns(2)
-                                #with col1:
-                                reddit_count = st.slider("How many top posts do you want to get?", min_value=10,
-                                max_value=10000, step=10, value=15)
-                                #with col2:
-                                submission_url = st.text_input('Provide a URL to search for','https://www.reddit.com/r/learnpython/comments/s52w65/im_trying_to_make_a_game_can_someone_explain_how/')
+                                    #col1,col2=st.columns(2)
+                                    #with col1:
+                                    reddit_count = st.slider("How many top posts do you want to get?", min_value=10,
+                                    max_value=10000, step=10, value=15)
+                                    #with col2:
+                                    submission_url = st.text_input('Provide a URL to search for','https://www.reddit.com/r/learnpython/comments/s52w65/im_trying_to_make_a_game_can_someone_explain_how/')
 
 
-                                #reddit = praw.Reddit(client_id='a98a0mNa_GgWIdEPYMeztQ', client_secret='YZwWwobAMtVzsPI_Zz09mAOwI48tkA', user_agent='chaitanya@AOL')
-                                reddit = praw.Reddit(client_id=reddit_credentials.my_client_id, client_secret=reddit_credentials.my_client_secret, user_agent=reddit_credentials.my_user_agent)
-                                commentss = []                              
+                                    #reddit = praw.Reddit(client_id='a98a0mNa_GgWIdEPYMeztQ', client_secret='YZwWwobAMtVzsPI_Zz09mAOwI48tkA', user_agent='chaitanya@AOL')
+                                    reddit = praw.Reddit(client_id=reddit_credentials.my_client_id, client_secret=reddit_credentials.my_client_secret, user_agent=reddit_credentials.my_user_agent)
+                                    commentss = []                              
 
-                                submission = reddit.submission(url=submission_url)
-                                submission.comments.replace_more(limit=reddit_count)
-                                for comment in submission.comments.list():
-                                    commentss.append([comment.author,comment.id,comment.subreddit,comment.body,comment.created])
-                                    #([comment.title, comment.score,  comment.url, comment.num_comments, comment.selftext, comment.created])
-                                commentz = pd.DataFrame(commentss,columns=['Author','ID','Subreddit','Comments','Created'])
+                                    submission = reddit.submission(url=submission_url)
+                                    submission.comments.replace_more(limit=reddit_count)
+                                    for comment in submission.comments.list():
+                                        commentss.append([comment.author,comment.id,comment.subreddit,comment.body,comment.created])
+                                        #([comment.title, comment.score,  comment.url, comment.num_comments, comment.selftext, comment.created])
+                                    commentz = pd.DataFrame(commentss,columns=['Author','ID','Subreddit','Comments','Created'])
+                                    
+                                    # Convert utc to datetime
+                                    #commentz['Created'] = commentz['Created'].apply(lambda x: datetime.fromtimestamp(x))
                                 
-                                # Convert utc to datetime
-                                #commentz['Created'] = commentz['Created'].apply(lambda x: datetime.fromtimestamp(x))
-                                
 
-                                
-                                st.subheader("Export the Top posts from selected subreddit in excel")
+                                    
+                                    st.subheader("Export the Top posts from selected subreddit in excel")
 
                                 # Export to excel
                                 towrite = io.BytesIO()
