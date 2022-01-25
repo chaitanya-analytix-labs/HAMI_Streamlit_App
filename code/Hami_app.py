@@ -564,10 +564,10 @@ def main():
                     # Submit button
                     with st.form(key="form1"):
                         # SelectBox
-                        options = st.radio("Select the task",
+                        options = st.radio("Select the analysis task",
                                            ["Topic Modelling", "Entity analysis", "Sentiment Analysis",
                                             "Emotion Analysis", "Text Summarization",
-                                            "Time Series Analysis", "Text Similarity", "Twitter Sentiment Analysis","Reddit text analysis"])
+                                            "Time Series Analysis", "Text Similarity", "Twitter Sentiment Analysis","Reddit text analysis"],help='Select the task and click submit')
                         submit = st.form_submit_button(label="Submit")
 
                         #########################
@@ -577,20 +577,36 @@ def main():
                         keywords = st_tags('Enter custom Stopwords:', 'Press enter to add more', ['hello'])
 
                         stopwords.extend(keywords)
+                        
+                       
 
                         if options == "Topic Modelling" and submit:
-                            # Assignments
+                                
+                            st.subheader("Topic Modelling")
+                            st.subheader("""Topic modeling gives us a way to infer the latent structure behind a collection of texts.
+                            Words/phrases are assigned to Topics based on their association with other words/phrases in the input collection.
+                            Topics are then used to infer the underlying semantic structure present in each cluster.
+                            
+                            1. The area of the circle represents the importance of each topic over the entire corpus.
+                                    The bigger the circle the higher the importance of that particular topic.
+	                        2. The distance between the center of each of these circles indicate the similarity between the topics.
+                                    The histogram on the right indicates top 30 relevant terms among each topic.""")                       
+
                             col1, col2, col3 = st.columns(3)
                             with col1:
+                                st.subheader("""1. Enter the Minimum required occurences of a word to be counted for model""")
                                 minimum_df = st.slider('slide to set min_df', min_value=1, max_value=8,
                                                        help="Minimum required occurences of a word")
                             with col2:
+                                st.subheader("""2. Enter the Number of topics to be formed by model""")
                                 collect_numbers = lambda x: [int(i) for i in re.split("[^0-9]", x) if i != ""]
                                 number_of_topics = st.text_input('Enter number of topics(minimum is 2)', "2")
                                 ticks = (collect_numbers(number_of_topics))
                             with col3:
+                                st.subheader("""3. Assign the number for keywords pairs i.e.Bi-gram, tri-gram,...n-gram """)
                                 n_grams = st.slider('select a range of n-grams', 1, 5, (1, 2),
                                                     help="Assign the number ngram for keywords/phrases i.e.Bi-gram, tri-gram,...n-gram")
+
 
                             # elif options == "Topic Modelling" and submit:
 
@@ -734,7 +750,10 @@ def main():
                             ####################################################
 
 
-                        elif options == "Text Similarity" and submit:
+                        elif dff is not None and options == "Text Similarity" and submit:
+
+                            st.subheader("""Text Similarity
+                            Measures the similarity between two texts by transforming the sentences into vectors and then computing the cosine similarity between them.""")
 
                             ####################################################
                             # Specify a number form 1 ~ 10, higher is more strict
@@ -829,6 +848,8 @@ def main():
 
 
                         elif options == "Entity analysis" and submit:
+                            st.subheader("""Entity analysis
+                            Extracts entities from a text and returns the entities with their types.""")
 
                             ####################################################
                             # ENTITY RECOGNITION : APPLYING the NER FROM SPACY
@@ -990,6 +1011,11 @@ def main():
                             #########################    
 
                         elif options == "Text Summarization" and submit:
+                            st.subheader("""Text Summarization
+                            Unsupervised Machine Learning Algorithm to summarize text based on Graph-based Centrality Scoring of Sentences.
+                            The sentences “recommend” other similar sentences to the user. Thus, if one sentence is very similar to many others, 
+                            it will likely be a sentence of great importance
+                            """)
 
                             # Lexrank
 
@@ -1038,6 +1064,10 @@ def main():
 
                         elif options == "Time Series Analysis" and submit:
 
+                            st.subheader("""Time Series Analysis
+                            Time Series Analysis is a powerful tool for analyzing time series data.
+                            """)
+
                             # Create a function to get the subjectivity of the text
                             # def sentiment_analysis(data):
                             def getSubjectivity(text):
@@ -1070,20 +1100,26 @@ def main():
 
                             col1, col2, col3 = st.columns(3)
                             with col1:
+
+                                #st.subheader("Select the column with date-time")
                                 date_col_select = st.selectbox(label="Select the column with date-time",
                                                                options=data.columns, index=1)
 
                             with col2:
-                                from_col = st.selectbox(label="Select the column with user names", options=data.columns,
+                                #st.subheader("Select the column with User Name User ID")
+                                from_col = st.selectbox(label="Select the column with User Name User ID", options=data.columns,
                                                         index=4)
 
                             with col3:
+                                #st.subheader("Filter by User name or ID")
                                 people = data[from_col].unique()
 
-                                person = st.selectbox(label="Select the people", options=people, index=0)
+                                person = st.selectbox(label="Filter by Username or ID", options=people, index=0)
                             st.success("There were {} messages from the selected input.".format(len(people)))
 
                             if date_col_select and from_col is not None:
+                                                                # Convert utc to datetime
+                                #data[date_col_select] = data[date_col_select].apply(lambda x: datetime.fromtimestamp(x))
 
                                 data["datetime"] = pd.to_datetime(data[date_col_select])
                                 data.index = data['datetime']
@@ -1266,6 +1302,10 @@ def main():
                             #########################
 
                         elif options == "Sentiment Analysis" and submit:
+                            st.subheader("""Sentiment Analysis
+                            Provides an agregate of the Sentiment classification of each text message or comment.
+                            
+                            """)
 
                             data['vader_comp'] = data.apply(lambda x: sentiment_analyzer_scores(x.clean_text), axis=1,
                                                             result_type='expand')
@@ -1426,6 +1466,9 @@ def main():
 
 
                         elif options == "Emotion Analysis" and submit:
+                            st.subheader("""Emotion Analysis
+                            Identify the emotion of the text or comment and aggregates the count of the emotion in overall input text.)
+                            """)
 
                             filename = model_dir + '/emotion_classifier_pipe_lr_Nov_2021.pkl'
                             # LogisticRegression Pipeline
@@ -1478,6 +1521,10 @@ def main():
                             st.markdown(linko, unsafe_allow_html=True)
 
                         elif options == "Twitter Sentiment Analysis" and submit:
+                            st.subheader("""Twitter Scrapper
+                            Scrape the tweets from the twitter account and predict the sentiment of the tweets.
+                            Search by Twitter handle or Twitter Keyword
+                            """)
 
                             # # # # TWITTER CLIENT # # # #
                             class TwitterClient():
@@ -1763,7 +1810,11 @@ def main():
 
                         ####REDDIT TEXT ANALYSIS####    
                         elif options == 'Reddit text analysis' and submit:
-                            st.subheader('Reddit text analysis')
+                            st.subheader("""Reddit text analysis
+                            Reddit is a website that allows users to post text, images, videos, and links.
+                            This tool allows you to analyse the sentiment of the text in the posts.
+                            The search can be made by subreddit keyword or web URL.
+                            """)
 
                             # Select the subreddit
 
@@ -1789,7 +1840,7 @@ def main():
                                 posts = pd.DataFrame(posts,columns=['title', 'score', 'id', 'subreddit', 'url', 'num_comments', 'body', 'created'])
 
                                 # Convert utc to datetime
-                                #posts['created'] = posts['created'].apply(lambda x: datetime.fromtimestamp(x))
+                                posts['created'] = posts['created'].apply(lambda x: datetime.fromtimestamp(x))
 
                                 col1,col2=st.columns(2)
 
@@ -1835,7 +1886,7 @@ def main():
                                     commentz = pd.DataFrame(commentss,columns=['Author','ID','Subreddit','Comments','Created'])
                                     
                                     # Convert utc to datetime
-                                    #commentz['Created'] = commentz['Created'].apply(lambda x: datetime.fromtimestamp(x))
+                                    commentz['Created'] = commentz['Created'].apply(lambda x: datetime.fromtimestamp(x))
                                 
 
                                     
@@ -1851,7 +1902,7 @@ def main():
                                 st.markdown(linko, unsafe_allow_html=True)                                
 
 
-                st.checkbox("Numerical Data")
+                #st.checkbox("Numerical Data")
 
             else:
                 st.warning("IncorrectUsername/Password")
