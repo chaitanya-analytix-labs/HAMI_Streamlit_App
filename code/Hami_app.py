@@ -20,6 +20,7 @@ footer:before{
 
 # PYNGROK
 from contextlib import redirect_stderr
+from tkinter import SCROLL
 import joblib
 
 # reddit
@@ -91,6 +92,14 @@ from scipy import spatial
 import json
 import torch
 from nltk import tokenize
+
+#################################
+# gov.sg
+#################################
+
+
+import urllib
+import pprint
 
 ###############################
 # Drill down Analysis
@@ -567,7 +576,8 @@ def main():
                         options = st.radio("Select the analysis task",
                                            ["Topic Modelling", "Entity analysis", "Sentiment Analysis",
                                             "Emotion Analysis", "Text Summarization",
-                                            "Time Series Analysis", "Text Similarity", "Twitter Sentiment Analysis","Reddit text analysis"],help='Select the task and click submit')
+                                            "Time Series Analysis", "Text Similarity", "Twitter Sentiment Analysis",
+                                            "Reddit text analysis","SG Govt Database"],help='Select the task and click submit')
                         submit = st.form_submit_button(label="Submit")
 
                         #########################
@@ -657,21 +667,8 @@ def main():
                             topic_panel = pyLDAvis.sklearn.prepare(
                                 topic_best_lda_model, topic_corpus_vectorized, topic_vectorizer, mds="tsne", R=50,
                                 sort_topics=False)
-                            pyLdavis_html_string=pyLDAvis.save_html(topic_panel, proj_dir + '/topic_panel.html')
+                            pyLDAvis.save_html(topic_panel, proj_dir + '/topic_panel.html')
 
-                            # Download the html file
-
-
-                            st.markdown("""<a href="topic_panel.html" download>Download the html file</a>""",
-                                        unsafe_allow_html=True)
-
-                                     
-
-
-
-
-                            
-                            
 
 
                             # Creating new df with keywords count
@@ -730,8 +727,17 @@ def main():
 
                             # st.plotly_chart(topic_panel)
                             html_string = pyLDAvis.prepared_data_to_html(topic_panel)
+
+                            # download the html file
+                            with open(proj_dir + "/topic_panel.html", "w") as f:
+                                f.write(html_string)
+
+                            # Download the html file
+                            st.markdown("""<a href="topic_panel.html" download>Download the html file</a>""", unsafe_allow_html=True)
+                            
                             from streamlit import components
                             components.v1.html(html_string, width=1300, height=900, scrolling=False)
+
 
                             col1, col2 = st.columns(2)
 
@@ -1915,6 +1921,33 @@ def main():
                                 b64 = base64.b64encode(towrite.read()).decode()  # some strings
                                 linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Reddit_comment_results.xlsx">Download comments scrapped as excel file</a>'
                                 st.markdown(linko, unsafe_allow_html=True)                                
+
+
+
+                        elif options == "SG Govt Database" and submit:
+
+
+
+                            st.subheader("""SG Govt dataset data extractor
+                            data.gov.sg is a website that allows users to search for publicly-available datasets from 70 public agencies.
+                            This tool allows you to analyse the sentiment of the text in the dataset.
+                            The search can be made by specific keyword or web URL.
+                            """)
+
+                            
+                            ##############################
+
+                            col1,col2,col3=st.columns(3)
+                            with col2:
+
+
+
+
+
+                                st.markdown("""<iframe width="800" height="600" 
+                                src="https://data.gov.sg/dataset/ckan-datastore-search/resource/6a7db56a-4df7-4228-8d57-37ded1b09306/view/1ef25043-abd9-46d2-b61f-4eb53c298e01" frameBorder="0">
+                                </iframe>""",unsafe_allow_html=True)
+                            
 
 
                 #st.checkbox("Numerical Data")
