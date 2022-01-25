@@ -149,7 +149,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 # import model file
 
 #model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
-model = SentenceTransformer('/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/model_for_similarity/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer('/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/model_for_similarity/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
 lottie_home2 = load_lottiefile(proj_dir + "/Hami_home.json")
@@ -657,7 +657,22 @@ def main():
                             topic_panel = pyLDAvis.sklearn.prepare(
                                 topic_best_lda_model, topic_corpus_vectorized, topic_vectorizer, mds="tsne", R=50,
                                 sort_topics=False)
-                            pyLDAvis.save_html(topic_panel, proj_dir + '/topic_panel.html')
+                            pyLdavis_html_string=pyLDAvis.save_html(topic_panel, proj_dir + '/topic_panel.html')
+
+                            # Download the html file
+
+
+                            st.markdown("""<a href="topic_panel.html" download>Download the html file</a>""",
+                                        unsafe_allow_html=True)
+
+                                     
+
+
+
+
+                            
+                            
+
 
                             # Creating new df with keywords count
 
