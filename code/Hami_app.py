@@ -157,7 +157,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 # import model file
 
-model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 #model = SentenceTransformer('/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/model_for_similarity/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
@@ -1324,7 +1324,7 @@ def main():
 
                         elif options == "Sentiment Analysis" and submit:
                             st.subheader("""Sentiment Analysis
-                            Provides an agregate of the Sentiment classification of each text message or comment.
+                            Provides an aggregate of the Sentiment classification of each text message or comment.
                             
                             """)
 
@@ -1488,7 +1488,7 @@ def main():
 
                         elif options == "Emotion Analysis" and submit:
                             st.subheader("""Emotion Analysis
-                            Identify the emotion of the text or comment and aggregates the count of the emotion in overall input text.)
+                            Identify the emotion of the text or comment and aggregates the count of the emotion in overall input text
                             """)
 
                             filename = model_dir + '/emotion_classifier_pipe_lr_Nov_2021.pkl'
