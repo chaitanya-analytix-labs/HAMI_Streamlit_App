@@ -593,14 +593,18 @@ def main():
                         if options == "Topic Modelling" and submit:
                                 
                             st.subheader("Topic Modelling")
-                            st.subheader("""Topic modeling gives us a way to infer the latent structure behind a collection of texts.
-                            Words/phrases are assigned to Topics based on their association with other words/phrases in the input collection.
-                            Topics are then used to infer the underlying semantic structure present in each cluster.
+                            st.subheader("""Topic modeling gives us a way to infer the hidden structure behind a collection of texts.
+                            Words/phrases are assigned to Topics based on their association with other words/phrases in the input data.
                             
-                            1. The area of the circle represents the importance of each topic over the entire corpus.
-                                    The bigger the circle the higher the importance of that particular topic.
-	                        2. The distance between the center of each of these circles indicate the similarity between the topics.
-                                    The histogram on the right indicates top 30 relevant terms among each topic.""")                       
+                            Distinct topics are separated by clusters containing inter-related keywords. These are used to identify the underlying semantic structures present in respective cluster.
+                            
+                            1. The area of the circle represents the importance of each topic.
+
+                            2. The bigger the circle the higher the importance of that particular topic.
+
+	                        3. The distance between the centre of each of these circles indicate the similarity between the topics.
+
+                            4. The histogram on the right indicates top 30 relevant terms among each topic.""")                       
 
                             col1, col2, col3 = st.columns(3)
                             with col1:
@@ -774,7 +778,7 @@ def main():
                         elif dff is not None and options == "Text Similarity" and submit:
 
                             st.subheader("""Text Similarity
-                            Measures the similarity between two texts by transforming the sentences into vectors and then computing the cosine similarity between them.""")
+                            Measures the similarity between two texts by transforming the sentences into vectors and then computing the distance between them.""")
 
                             ####################################################
                             # Specify a number form 1 ~ 10, higher is more strict
@@ -1035,7 +1039,7 @@ def main():
                             st.subheader("""Text Summarization
                             Unsupervised Machine Learning Algorithm to summarize text based on Graph-based Centrality Scoring of Sentences.
                             The sentences “recommend” other similar sentences to the user. Thus, if one sentence is very similar to many others, 
-                            it will likely be a sentence of great importance
+                            it will likely be a sentence of higher importance.
                             """)
 
                             # Lexrank
@@ -1324,8 +1328,7 @@ def main():
 
                         elif options == "Sentiment Analysis" and submit:
                             st.subheader("""Sentiment Analysis
-                            Provides an aggregate of the Sentiment classification of each text message or comment.
-                            
+                            Classification of texts into positive, negative and neutral sentiments.
                             """)
 
                             data['vader_comp'] = data.apply(lambda x: sentiment_analyzer_scores(x.clean_text), axis=1,
@@ -1488,7 +1491,7 @@ def main():
 
                         elif options == "Emotion Analysis" and submit:
                             st.subheader("""Emotion Analysis
-                            Identify the emotion of the text or comment and aggregates the count of the emotion in overall input text
+                            Emotion Analysis helps with the segregation of human emotional expressions via text analysis using semantic analysis and deep learning.
                             """)
 
                             filename = model_dir + '/emotion_classifier_pipe_lr_Nov_2021.pkl'
@@ -1543,8 +1546,8 @@ def main():
 
                         elif options == "Twitter Sentiment Analysis" and submit:
                             st.subheader("""Twitter Scrapper
-                            Scrape the tweets from the twitter account and predict the sentiment of the tweets.
-                            Search by Twitter handle or Twitter Keyword
+                            Searches for tweeets or hashtags in twitter application and predicts the sentiment of the tweets.
+                            Search by Twitter handle name or Twitter Keyword
                             """)
 
                             # # # # TWITTER CLIENT # # # #
@@ -1833,7 +1836,7 @@ def main():
                         elif options == 'Reddit text analysis' and submit:
                             st.subheader("""Reddit text analysis
                             Reddit is a website that allows users to post text, images, videos, and links.
-                            This tool allows you to analyse the sentiment of the text in the posts.
+                            This tool helps you to scrape texts and analyse the sentiment of the text in the posts.
                             The search can be made by subreddit keyword or web URL.
                             """)
 
