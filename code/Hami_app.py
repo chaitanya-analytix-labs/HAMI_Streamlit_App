@@ -157,7 +157,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 # import model file
 
-#model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
+model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 #model = SentenceTransformer('/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/model_for_similarity/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
@@ -732,16 +732,26 @@ def main():
                             # st.plotly_chart(topic_panel)
                             html_string = pyLDAvis.prepared_data_to_html(topic_panel)
 
-                            # download the html file
-                            with open(proj_dir + "/topic_panel.html", "w") as f:
-                                f.write(html_string)
+                            # import the html file
 
-                            # Download the html file
-                            st.markdown("""<a href="topic_panel.html" download>Download the html file</a>""", unsafe_allow_html=True)
-                            
+                            def get_binary_file_downloader_html(bin_file, file_label='File'):
+                                with open(bin_file, 'rb') as f:
+                                    data = f.read()
+                                bin_str = base64.b64encode(data).decode()
+                                href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'                                
+                                return href
+
+
+
                             from streamlit import components
                             components.v1.html(html_string, width=1300, height=900, scrolling=False)
 
+
+
+                            # Download the html file
+                            st.columns(3)
+                            with col3:
+                                st.markdown(get_binary_file_downloader_html(proj_dir + '/topic_panel.html', 'Topic Model Visual'), unsafe_allow_html=True)
 
                             col1, col2 = st.columns(2)
 
