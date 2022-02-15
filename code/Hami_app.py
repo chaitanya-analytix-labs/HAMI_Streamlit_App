@@ -157,7 +157,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 # import model file
 
-model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 #model = SentenceTransformer('/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/model_for_similarity/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
@@ -1769,6 +1769,7 @@ def main():
                                     st.subheader('Analyse with results from twitter handle names')
                                     twitter_handle = st.text_input("Enter the Twitter Handle")
 
+
                                     tweets = []
                                     id = []
                                     date = []
@@ -1862,39 +1863,48 @@ def main():
                                     reddit_count = st.slider("How many top posts do you want to get?", min_value=10,
                                     max_value=10000, step=10, value=15)
                                 with col2:
-                                    subreddit_topic = st.text_input('Provide a subreddit name to search for','spiderman')
+                                    
+                                    subreddit_topic = st.text_input('Provide a subreddit name or topic to search for')
 
+                                if subreddit_topic is not None:
+                                    try:
 
-                                #reddit = praw.Reddit(client_id='a98a0mNa_GgWIdEPYMeztQ', client_secret='YZwWwobAMtVzsPI_Zz09mAOwI48tkA', user_agent='chaitanya@AOL')
-                                reddit = praw.Reddit(client_id=reddit_credentials.my_client_id, client_secret=reddit_credentials.my_client_secret, user_agent=reddit_credentials.my_user_agent)
-                                posts = []
-                                ml_subreddit = reddit.subreddit(subreddit_topic)
-                                for post in ml_subreddit.hot(limit=reddit_count):
-                                    posts.append([post.title, post.score, post.id, post.subreddit, post.url, post.num_comments, post.selftext, post.created])
-                                posts = pd.DataFrame(posts,columns=['title', 'score', 'id', 'subreddit', 'url', 'num_comments', 'body', 'created'])
+                                        #reddit = praw.Reddit(client_id='a98a0mNa_GgWIdEPYMeztQ', client_secret='YZwWwobAMtVzsPI_Zz09mAOwI48tkA', user_agent='chaitanya@AOL')
+                                        reddit = praw.Reddit(client_id=reddit_credentials.my_client_id, client_secret=reddit_credentials.my_client_secret, user_agent=reddit_credentials.my_user_agent)
+                                        posts = []
+                                        ml_subreddit = reddit.subreddit(subreddit_topic)
+                                        for post in ml_subreddit.hot(limit=reddit_count):
+                                            posts.append([post.title, post.score, post.id, post.subreddit, post.url, post.num_comments, post.selftext, post.created])
+                                        posts = pd.DataFrame(posts,columns=['title', 'score', 'id', 'subreddit', 'url', 'num_comments', 'body', 'created'])
 
-                                # Convert utc to datetime
-                                posts['created'] = posts['created'].apply(lambda x: datetime.fromtimestamp(x))
+                                        # Convert utc to datetime
+                                        posts['created'] = posts['created'].apply(lambda x: datetime.fromtimestamp(x))
 
-                                col1,col2=st.columns(2)
+                                        col1,col2=st.columns(2)
 
-                                with col1:
-                                    st.subheader('Description of the retreived subreddit')
-                                    st.write(ml_subreddit.description)
-                                with col2:
-                                    st.subheader('Number of subscribers')
-                                    st.write(ml_subreddit.subscribers)
-                                
-                                    st.subheader("Export the Top posts from selected subreddit in excel")
+                                        with col1:
+                                            st.subheader('Description of the retreived subreddit')
+                                            st.write(ml_subreddit.description)
+                                        with col2:
+                                            st.subheader('Number of subscribers')
+                                            st.write(ml_subreddit.subscribers)
+                                        
+                                            st.subheader("Export the Top posts from selected subreddit in excel")
 
-                                    # Export to excel
-                                    towrite = io.BytesIO()
-                                    downloaded_file = posts.to_excel(towrite, encoding='utf-8', index=False,
-                                                                        header=True)
-                                    towrite.seek(0)  # reset pointer
-                                    b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                    linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Reddit_results.xlsx">Download subreddit texts scrapped as excel file</a>'
-                                    st.markdown(linko, unsafe_allow_html=True)
+                                            # Export to excel
+                                            towrite = io.BytesIO()
+                                            downloaded_file = posts.to_excel(towrite, encoding='utf-8', index=False,
+                                                                                header=True)
+                                            towrite.seek(0)  # reset pointer
+                                            b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                            linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Reddit_results.xlsx">Download subreddit texts scrapped as excel file</a>'
+                                            st.markdown(linko, unsafe_allow_html=True)
+                                        
+                                    except ValueError as error:
+                                        st.warning("Please enter a valid subreddit name or topic")
+                                else:
+                                    st.warning("Please enter a valid subreddit name or topic")
+
 
                             elif st.checkbox('Search by URL of subreddit webpage'):
                                 st.subheader('Analyse posts from selected URL of subreddit')
@@ -1905,35 +1915,43 @@ def main():
                                     reddit_count = st.slider("How many top posts do you want to get?", min_value=10,
                                     max_value=10000, step=10, value=15)
                                     #with col2:
-                                    submission_url = st.text_input('Provide a URL to search for','https://www.reddit.com/r/learnpython/comments/s52w65/im_trying_to_make_a_game_can_someone_explain_how/')
+
+                                    submission_url = st.text_input('Provide a URL to search for')
+                                    if submission_url is not None:
+                                        try:
 
 
-                                    #reddit = praw.Reddit(client_id='a98a0mNa_GgWIdEPYMeztQ', client_secret='YZwWwobAMtVzsPI_Zz09mAOwI48tkA', user_agent='chaitanya@AOL')
-                                    reddit = praw.Reddit(client_id=reddit_credentials.my_client_id, client_secret=reddit_credentials.my_client_secret, user_agent=reddit_credentials.my_user_agent)
-                                    commentss = []                              
+                                            #reddit = praw.Reddit(client_id='a98a0mNa_GgWIdEPYMeztQ', client_secret='YZwWwobAMtVzsPI_Zz09mAOwI48tkA', user_agent='chaitanya@AOL')
+                                            reddit = praw.Reddit(client_id=reddit_credentials.my_client_id, client_secret=reddit_credentials.my_client_secret, user_agent=reddit_credentials.my_user_agent)
+                                            commentss = []                              
 
-                                    submission = reddit.submission(url=submission_url)
-                                    submission.comments.replace_more(limit=reddit_count)
-                                    for comment in submission.comments.list():
-                                        commentss.append([comment.author,comment.id,comment.subreddit,comment.body,comment.created])
-                                        #([comment.title, comment.score,  comment.url, comment.num_comments, comment.selftext, comment.created])
-                                    commentz = pd.DataFrame(commentss,columns=['Author','ID','Subreddit','Comments','Created'])
-                                    
-                                    # Convert utc to datetime
-                                    commentz['Created'] = commentz['Created'].apply(lambda x: datetime.fromtimestamp(x))
-                                
+                                            submission = reddit.submission(url=submission_url)
+                                            submission.comments.replace_more(limit=reddit_count)
+                                            for comment in submission.comments.list():
+                                                commentss.append([comment.author,comment.id,comment.subreddit,comment.body,comment.created])
+                                                #([comment.title, comment.score,  comment.url, comment.num_comments, comment.selftext, comment.created])
+                                            commentz = pd.DataFrame(commentss,columns=['Author','ID','Subreddit','Comments','Created'])
+                                            
+                                            # Convert utc to datetime
+                                            commentz['Created'] = commentz['Created'].apply(lambda x: datetime.fromtimestamp(x))
+                                        
 
-                                    
-                                    st.subheader("Export the Top posts from selected subreddit in excel")
+                                            
+                                            st.subheader("Export the Top posts from selected subreddit in excel")
 
-                                # Export to excel
-                                towrite = io.BytesIO()
-                                downloaded_file = commentz.to_excel(towrite, encoding='utf-8', index=False,
-                                                                    header=True)
-                                towrite.seek(0)  # reset pointer
-                                b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Reddit_comment_results.xlsx">Download comments scrapped as excel file</a>'
-                                st.markdown(linko, unsafe_allow_html=True)                                
+                                            # Export to excel
+                                            towrite = io.BytesIO()
+                                            downloaded_file = commentz.to_excel(towrite, encoding='utf-8', index=False,
+                                                                                header=True)
+                                            towrite.seek(0)  # reset pointer
+                                            b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                            linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Reddit_comment_results.xlsx">Download comments scrapped as excel file</a>'
+                                            st.markdown(linko, unsafe_allow_html=True) 
+
+                                        except ValueError as error:
+                                            st.warning("Please enter a valid URL")  
+                                    else:
+                                        st.warning("Please enter a valid URL")                                     
 
 
 
