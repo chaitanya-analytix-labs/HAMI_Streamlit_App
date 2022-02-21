@@ -157,7 +157,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 # import model file
 
-model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
+#model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 #model = SentenceTransformer('/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/model_for_similarity/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
 
@@ -1203,34 +1203,36 @@ def main():
                                 with col2:
                                     st.plotly_chart(w_count_axes)
 
-                                    ##########################################################
+                                ##########################################################
                                 # word count
                                 ##########################################################
 
                                 col1, col2 = st.columns(2)
-                                with col1:
-                                    w_count_sort = data["word_count"].resample("D").sum().sort_values(
-                                        ascending=False).head(10)
-                                    w_count_sort_axes = px.bar(w_count_sort,
-                                                               title="When was the most conversations across timeline ? [Top 10]")
-                                    fig_sort = go.Figure(w_count_sort_axes)
-                                    st.plotly_chart(w_count_sort_axes)
-                                    # st.pyplot(hrs_D.plot.barh(x=hrs_D.index, y=hrs_D.values, title="Top 10 words by day"))
+                                
+                                w_count_sort = data["word_count"].resample("D").sum().sort_values(ascending=False).head(10)
+
+                                w_count_sort_axes = px.bar(w_count_sort,title="When was the most conversations across timeline ? [Top 10]")
+                                fig_sort = go.Figure(w_count_sort_axes)
+                                #with col1:
+                                    #st.plotly_chart(w_count_sort_axes)
+                                    #st.pyplot(hrs_D.plot.barh(x=hrs_D.index, y=hrs_D.values, title="Top 10 words by day"))
 
                                 data["hour"] = data.datetime.dt.hour
-                                with col2:
-                                    w_count_hrs = data.groupby("hour")["word_count"].sum().head(24)
-                                    w_count_hrs_axes = px.bar(w_count_hrs,
-                                                              title="Which hour of the day were the users active?")
-                                    fig_hrs = go.Figure(w_count_hrs_axes)
-                                    st.plotly_chart(fig_hrs)
+                                
+                                w_count_hrs = data.groupby("hour")["word_count"].sum().head(24)
+
+                                w_count_hrs_axes = px.bar(w_count_hrs,title="Which hour of the day were the users active?")
+                                fig_hrs = go.Figure(w_count_hrs_axes)
+                                #with col2:
+                                #    st.plotly_chart(fig_hrs)
+                                    #st.pyplot(w_count_hrs.plot.barh(x=w_count_hrs.index, y=w_count_hrs.values, title="Top 10 words by day"))
 
                                 # sumy_10=data[["datetime","hour",from_col,"word_count","clean_text"]]
                                 sumy_10 = data[[from_col, "word_count", "clean_text"]]
 
                                 sumy_10 = sumy_10.sort_values(by=["word_count"], ascending=False)
                                 sumy_10 = sumy_10.head(10)
-                                # st.dataframe(sumy_10)
+                                #st.dataframe(sumy_10)
 
                                 sumy_filtered_data = sumy_10['clean_text']
                                 sumy_topic_corpus = filtered_data.astype(str)
@@ -1319,18 +1321,18 @@ def main():
                                         }
                                     )
 
-                            st.subheader('User stats')
-                            user_stat_df = pd.DataFrame(d)
-                            st.dataframe(user_stat_df)
+                                st.subheader('User stats')
+                                user_stat_df = pd.DataFrame(d)
+                                st.dataframe(user_stat_df)
 
-                            # Download file
+                                # Download file
 
-                            towrite = io.BytesIO()
-                            downloaded_file = user_stat_df.to_excel(towrite, encoding='utf-8', index=False, header=True)
-                            towrite.seek(0)  # reset pointer
-                            b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                            linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="User_Metrics.xlsx">Download excel with user metrics</a>'
-                            st.markdown(linko, unsafe_allow_html=True)
+                                towrite = io.BytesIO()
+                                downloaded_file = user_stat_df.to_excel(towrite, encoding='utf-8', index=False, header=True)
+                                towrite.seek(0)  # reset pointer
+                                b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="User_Metrics.xlsx">Download excel with user metrics</a>'
+                                st.markdown(linko, unsafe_allow_html=True)
 
                             #########################
                             # Sentiment Analysis
