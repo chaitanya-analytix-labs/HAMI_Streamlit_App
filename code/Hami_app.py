@@ -134,6 +134,28 @@ regex_str = r'\d{5,8}'
 
 from PyPDF2 import PdfFileReader
 
+##################################
+# GLOBAL NEWS API
+##################################
+
+from email.policy import default
+from unicodedata import category
+import NewsAPI_const
+
+################################
+# News API
+################################
+
+from GoogleNews import GoogleNews
+from newspaper import Article
+import pandas as pd
+
+from newsapi import NewsApiClient
+
+#Access Key##################################################################
+newsapi = NewsApiClient(api_key='c4014e3a0e7d472f931d06fb142f14d3')
+#############################################################################
+
 
 #################################
 # Lottie Animation
@@ -577,7 +599,7 @@ def main():
                                            ["Topic Modelling", "Entity analysis", "Sentiment Analysis",
                                             "Emotion Analysis", "Text Summarization",
                                             "Time Series Analysis", "Text Similarity", "Twitter Sentiment Analysis",
-                                            "Reddit text analysis","SG Govt Database"],help='Select the task and click submit')
+                                            "Reddit text analysis","SG Govt Database","Global News API"],help='Select the task and click submit')
                         submit = st.form_submit_button(label="Submit")
 
                         #########################
@@ -1980,7 +2002,135 @@ def main():
                                 st.markdown("""<iframe width="800" height="600" 
                                 src="https://data.gov.sg/dataset/ckan-datastore-search/resource/6a7db56a-4df7-4228-8d57-37ded1b09306/view/1ef25043-abd9-46d2-b61f-4eb53c298e01" frameBorder="0">
                                 </iframe>""",unsafe_allow_html=True)
-                            
+
+                        elif options == "Global News API" and submit:
+
+                            st.subheader("""News API data extractor
+                            News API allows users to search for news articles from over 200,000 news sources.
+                            This tool allows you to retreive the the news articles based on user preferences.
+                            The search can be made by specifying keyword or phrase.
+                            """)
+
+                            ##############################
+
+
+                            if st.checkbox('Search by top headlines'):
+                                st.write("Search by top headlines")
+
+                            ##############################################
+
+
+                                col1,col2=st.columns(2)
+
+
+                                #Get top headlines
+                                with col1:
+                                    keyword_search=st.text_input('Enter the keyword or phrase',help='Searches for matching keywords in the article title and body')
+
+                                    lang_select=st.selectbox('Language Selection',options=NewsAPI_const.languages,help='Dropdown menu to select the language')
+
+                                with col2:
+                                    country_select=st.selectbox('Country Selection',options=NewsAPI_const.countries,help='Dropdown menu to select the country')
+
+                                    category_select=st.selectbox('Category Selection',options=NewsAPI_const.categories,help='Dropdown menu to select the category')
+
+
+
+                            ############################################################################################################################
+                            #Search by Top head lines
+                            ############################################################################################################################
+                                if keyword_search is not None:
+                                    try:
+
+                                        #top_headlines = newsapi.get_top_headlines(q=keyword_search,sources=None,language=lang_select,country=country_select,
+                                        #category=category_select,sort_method=sort_method_select,page_size=None,page=None,exclude_domains=None)
+
+                                        top_headlines = newsapi.get_top_headlines(q=keyword_search,sources=None,language=lang_select,country=country_select,
+                                        category=category_select,page_size=None,page=None)
+
+                                        results_top_headlines = top_headlines['articles']
+                                        
+                                        top_headlines_df=pd.DataFrame(results_top_headlines)
+                                        
+
+                                        # Convert utc to datetime
+                                        #top_headlines_df['publishedAt'] = top_headlines_df['publishedAt'].apply(lambda x: datetime.fromtimestamp(x))
+                                        
+                                        st.dataframe(top_headlines_df)
+
+                                        # Export to excel
+                                        towrite = io.BytesIO()
+                                        downloaded_file = top_headlines_df.to_excel(towrite, encoding='utf-8', index=False,
+                                                                                    header=True)
+                                        towrite.seek(0)  # reset pointer
+                                        b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                        linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Breaking_News_results.xlsx">Download news scrapped as excel file</a>'
+                                        st.markdown(linko, unsafe_allow_html=True)  
+
+                                    
+                                    except:
+                                        st.warning("Please enter a valid keyword")
+                                else:
+                                    st.write('Please enter a keyword or phrase')
+
+                            if st.checkbox('Search by all articles'):
+                                st.write("Search by all articles within specified date range")
+
+
+                                col1,col2=st.columns(2)
+
+                                #Get all headlines
+
+                                with col1:
+                                        
+                                    start_date=st.date_input('Start Date', value=pd.Timestamp('2022-03-01'))
+                                    
+                                    keyword_search=st.text_input('Enter the keyword or phrase',help='Searches for matching keywords in the article title and body')
+
+                                    lang_select=st.selectbox('Language Selection',options=NewsAPI_const.languages,help='Dropdown menu to select the language')
+
+                                with col2:
+
+                                    end_date=st.date_input('End Date', value=pd.Timestamp('2022-03-03'))
+
+                                    sort_method_select=st.selectbox('Sort Method',options=NewsAPI_const.sort_method,help='Dropdown menu to select the sort method')
+
+                                    sources = newsapi.get_sources()
+                                    source_select = st.selectbox('Select a source', options=sources['sources'],help='News sources or blogs you want headlines from')
+                             
+
+                                if keyword_search is not None:
+
+                                    try:
+                                        
+                                        all_articles = newsapi.get_everything(q=keyword_search,
+                                        sources=None,language=lang_select,
+                                        sort_by=sort_method_select,
+                                        page_size=None,page=None,exclude_domains=None,from_param=start_date,to=end_date)
+
+                                        results_all_articles = all_articles['articles']
+
+                                        all_articles_df=pd.DataFrame(results_all_articles)
+
+                                        # Convert utc to datetime
+                                        #all_articles_df['publishedAt'] = all_articles_df['publishedAt'].apply(lambda x: datetime.fromtimestamp(x))
+
+                                        st.dataframe(all_articles_df)
+
+                                        # Export to excel
+                                        towrite = io.BytesIO()
+                                        downloaded_file = all_articles_df.to_excel(towrite, encoding='utf-8', index=False,
+                                                                                    header=True)
+                                        towrite.seek(0)  # reset pointer
+                                        b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                        linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="All_News_results.xlsx">Download news scrapped as excel file</a>'
+                                        st.markdown(linko, unsafe_allow_html=True)
+
+                                    except:
+                                        st.warning('Please enter a keyword or phrase')
+
+
+
 
 
                 #st.checkbox("Numerical Data")
