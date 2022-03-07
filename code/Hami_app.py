@@ -181,7 +181,8 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 #model = SentenceTransformer('/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/model_for_similarity/paraphrase-distilroberta-base-v1')
-lottie_home = load_lottieurl("https://assets2.lottiefiles.com/private_files/lf30_3ezlslmp.json")
+lottie_home = load_lottieurl("https://assets4.lottiefiles.com/packages/lf20_ukcrranb.json")
+
 
 lottie_home2 = load_lottiefile(proj_dir + "/Hami_home.json")
 
@@ -2048,32 +2049,41 @@ def main():
                                         top_headlines = newsapi.get_top_headlines(q=keyword_search,sources=None,language=lang_select,country=country_select,
                                         category=category_select,page_size=None,page=None)
 
-                                        results_top_headlines = top_headlines['articles']
-                                        
-                                        top_headlines_df=pd.DataFrame(results_top_headlines)
-                                        
+                                        status_top_headlines = top_headlines['status']
+                                        #status_ok=st.write(status_top_headlines)
 
-                                        # Convert utc to datetime
-                                        #top_headlines_df['publishedAt'] = top_headlines_df['publishedAt'].apply(lambda x: datetime.fromtimestamp(x))
-                                        
-                                        st.dataframe(top_headlines_df)
+                                        if status_top_headlines == 'ok':
 
-                                        # Export to excel
-                                        towrite = io.BytesIO()
-                                        downloaded_file = top_headlines_df.to_excel(towrite, encoding='utf-8', index=False,
-                                                                                    header=True)
-                                        towrite.seek(0)  # reset pointer
-                                        b64 = base64.b64encode(towrite.read()).decode()  # some strings
-                                        linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Breaking_News_results.xlsx">Download news scrapped as excel file</a>'
-                                        st.markdown(linko, unsafe_allow_html=True)  
+                                            total_results_top_headlines = top_headlines['totalResults']
+                                            st.success(f'Total Results: {total_results_top_headlines}')
 
-                                    
+                                            results_top_headlines = top_headlines['articles']
+                                            
+                                            top_headlines_df=pd.DataFrame(results_top_headlines)
+                                            
+
+                                            # Convert utc to datetime
+                                            #top_headlines_df['publishedAt'] = top_headlines_df['publishedAt'].apply(lambda x: datetime.fromtimestamp(x))
+                                            
+                                            st.dataframe(top_headlines_df)
+
+                                            # Export to excel
+                                            towrite = io.BytesIO()
+                                            downloaded_file = top_headlines_df.to_excel(towrite, encoding='utf-8', index=False,
+                                                                                        header=True)
+                                            towrite.seek(0)  # reset pointer
+                                            b64 = base64.b64encode(towrite.read()).decode()  # some strings
+                                            linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="Breaking_News_results.xlsx">Download news scrapped as excel file</a>'
+                                            st.markdown(linko, unsafe_allow_html=True)  
+
+                                        else:
+                                            st.warning("There were no results for the searched keyword")
                                     except:
                                         st.warning("Please enter a valid keyword")
                                 else:
                                     st.write('Please enter a keyword or phrase')
 
-                            if st.checkbox('Search by all articles'):
+                            elif st.checkbox('Search by all articles'):
                                 st.write("Search by all articles within specified date range")
 
 
@@ -2096,8 +2106,8 @@ def main():
                                     sort_method_select=st.selectbox('Sort Method',options=NewsAPI_const.sort_method,help='Dropdown menu to select the sort method')
 
                                     sources = newsapi.get_sources()
-                                    source_select = st.selectbox('Select a source', options=sources['sources'],help='News sources or blogs you want headlines from')
-                             
+                                    #source_select = st.selectbox('Select a source', options=sources['sources'],help='News sources or blogs you want headlines from')
+                                    Search_in=st.multiselect('Search in',options=(["title","description","content"]),help='Dropdown menu to select any one option, leave empty if no choice')
 
                                 if keyword_search is not None:
 
@@ -2106,7 +2116,17 @@ def main():
                                         all_articles = newsapi.get_everything(q=keyword_search,
                                         sources=None,language=lang_select,
                                         sort_by=sort_method_select,
-                                        page_size=None,page=None,exclude_domains=None,from_param=start_date,to=end_date)
+                                        page_size=None,page=None,exclude_domains=None,from_param=start_date,to=end_date,
+                                        )
+
+
+                                        status_all_articles = all_articles['status']
+                                        #status_ok=st.write(status_top_headlines)
+
+                                        #if status_all_articles == 'ok':
+
+                                        #    total_results_all_articles = all_articles['totalResults']
+                                        #    st.success(f'Total Results: {total_results_all_articles}')                                        
 
                                         results_all_articles = all_articles['articles']
 
