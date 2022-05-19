@@ -180,7 +180,7 @@ model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model
 
 # import model file
 
-#model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
+model = SentenceTransformer(model_dir + '/paraphrase-distilroberta-base-v1')
 #model = SentenceTransformer('/Volumes/GoogleDrive-110033092045285714630/My Drive/HAMI/Production/HAMI_Streamlit_App_v3.0/HAMI_Streamlit_App/HAMI_Streamlit_App/model_for_similarity/paraphrase-distilroberta-base-v1')
 lottie_home = load_lottieurl("https://assets4.lottiefiles.com/packages/lf20_ukcrranb.json")
 
@@ -936,19 +936,19 @@ def main():
                                 ####################################################
                                 temp_dict = {}
 
-                                for index, row in sentence_df.iterrows():
-                                    if (row['confirmation_order'] <= 11 - StrictLevel) and \
-                                            (row['confirmation_sim'] > 0.35) or \
-                                            _check_word_in_sentence(TargetSentence, row['text']):
-                                        st.write('Matched rows with Sentence:', int(row['index']), row['text'])
-                                    temp_dict = {
-                                        'index': int(row['index']),
-                                        'text': row['text']
-                                    }
+                                #for index, row in sentence_df.iterrows():
+                                #    if (row['confirmation_order'] <= 11 - StrictLevel) and \
+                                #            (row['confirmation_sim'] > 0.35) or \
+                                #            _check_word_in_sentence(TargetSentence, row['text']):
+                                #        st.write('Matched rows with Sentence:', int(row['index']), row['text'])
+                                #    temp_dict = {
+                                #        'index': int(row['index']),
+                                #        'text': row['text']
+                                #    }
                                  #for keyword in TargetKeyWords:
-                                for index, row in sentence_df.iterrows():
-                                    if (_check_word_in_sentence(TargetSentence, row['text'])):
-                                        st.write('Matched rows with keywords:', int(row['index']), row['text'])
+                                #for index, row in sentence_df.iterrows():
+                                #    if (_check_word_in_sentence(TargetSentence, row['text'])):
+                                #        st.write('Matched rows with keywords:', int(row['index']), row['text'])
 
                                 ####################################################
 
